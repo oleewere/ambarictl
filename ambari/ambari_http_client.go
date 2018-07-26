@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"time"
 	"crypto/tls"
+	"os"
+	"io/ioutil"
+	"encoding/json"
 )
 
 // Create Ambari GET request
@@ -56,4 +59,23 @@ func GetHttpClient() *http.Client {
 		},
 	}
 	return httpClient
+}
+
+// Get "items" from Ambari response
+func ProcessAmbariItems(request *http.Request) AmbariItems {
+	client := GetHttpClient()
+	response, err := client.Do(request)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer response.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(response.Body)
+	var ambariItems AmbariItems
+	json_err := json.Unmarshal(bodyBytes, &ambariItems)
+	if json_err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return ambariItems
 }

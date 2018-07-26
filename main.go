@@ -48,7 +48,13 @@ func main() {
 		Usage: "Print all registered Ambari registries",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
-			ambariRegistry.ListAgents()
+			hosts := ambariRegistry.ListAgents()
+			fmt.Println("Registered hosts:")
+			fmt.Println("-----------------")
+			for _, host := range hosts {
+				hostEntry := fmt.Sprintf("%s (ip: %s) - state: %s", host.PublicHostname, host.IP, host.HostState)
+				fmt.Println(hostEntry)
+			}
 			return nil
 		},
 	}
