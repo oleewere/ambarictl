@@ -24,7 +24,7 @@ import (
 	"strconv"
 )
 
-// Initialize ambari-manager database
+// CreateAmbariRegistryDb initialize ambari-manager database
 func CreateAmbariRegistryDb() {
 	db, err := sql.Open("sqlite3", getDbFile())
 	checkErr(err)
@@ -34,7 +34,7 @@ func CreateAmbariRegistryDb() {
 	statement.Exec()
 }
 
-// Drop all entries from ambari-manager database
+// DropAmbariRegistryRecords drop all entries from ambari-manager database
 func DropAmbariRegistryRecords() {
 	db, err := sql.Open("sqlite3", getDbFile())
 	checkErr(err)
@@ -44,7 +44,7 @@ func DropAmbariRegistryRecords() {
 	statement.Exec()
 }
 
-// Get all ambari registries from ambari-manager database
+// ListAmbariRegistryEntries get all ambari registries from ambari-manager database
 func ListAmbariRegistryEntries() {
 	db, err := sql.Open("sqlite3", getDbFile())
 	checkErr(err)
@@ -70,7 +70,7 @@ func ListAmbariRegistryEntries() {
 	rows.Close()
 }
 
-// Create new ambari registry entry in ambari-manager database
+// RegisterNewAmbariEntry create new ambari registry entry in ambari-manager database
 func RegisterNewAmbariEntry(id string, hostname string, port int, protocol string, username string, password string, cluster string) {
 	db, err := sql.Open("sqlite3", getDbFile())
 	checkErr(err)
@@ -93,7 +93,7 @@ func RegisterNewAmbariEntry(id string, hostname string, port int, protocol strin
 	checkErr(insertErr)
 }
 
-// Get the active ambari registry from ambari-manager database (should be only one)
+// GetActiveAmbari get the active ambari registry from ambari-manager database (should be only one)
 func GetActiveAmbari() AmbariRegistry {
 	db, err := sql.Open("sqlite3", getDbFile())
 	checkErr(err)
