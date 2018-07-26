@@ -40,7 +40,7 @@ func main() {
 	}
 
 	app.Commands = []cli.Command{}
-	init_command := cli.Command{
+	initCommand := cli.Command{
 		Name:  "init",
 		Usage: "Initialize Ambari context (db)",
 		Action: func(c *cli.Context) error {
@@ -48,7 +48,7 @@ func main() {
 			return nil
 		},
 	}
-	list_command := cli.Command{
+	listCommand := cli.Command{
 		Name:  "list",
 		Usage: "Print all registered Ambari registries",
 		Action: func(c *cli.Context) error {
@@ -57,7 +57,7 @@ func main() {
 		},
 	}
 
-	list_agents_command := cli.Command{
+	listAgentsCommand := cli.Command{
 		Name:  "hosts",
 		Usage: "Print all registered Ambari registries",
 		Action: func(c *cli.Context) error {
@@ -73,7 +73,7 @@ func main() {
 		},
 	}
 
-	register_command := cli.Command{
+	registerCommand := cli.Command{
 		Name:  "register",
 		Usage: "Register new Ambari entry",
 		Action: func(c *cli.Context) error {
@@ -83,7 +83,7 @@ func main() {
 		},
 	}
 
-	clear_command := cli.Command{
+	clearCommand := cli.Command{
 		Name:  "clear",
 		Usage: "Drop all Ambari registry records",
 		Action: func(c *cli.Context) error {
@@ -92,7 +92,7 @@ func main() {
 		},
 	}
 
-	show_command := cli.Command{
+	showCommand := cli.Command{
 		Name:  "show",
 		Usage: "Show active Ambari registry details",
 		Action: func(c *cli.Context) error {
@@ -104,12 +104,12 @@ func main() {
 		},
 	}
 
-	app.Commands = append(app.Commands, init_command)
-	app.Commands = append(app.Commands, list_command)
-	app.Commands = append(app.Commands, list_agents_command)
-	app.Commands = append(app.Commands, show_command)
-	app.Commands = append(app.Commands, register_command)
-	app.Commands = append(app.Commands, clear_command)
+	app.Commands = append(app.Commands, initCommand)
+	app.Commands = append(app.Commands, listCommand)
+	app.Commands = append(app.Commands, listAgentsCommand)
+	app.Commands = append(app.Commands, showCommand)
+	app.Commands = append(app.Commands, registerCommand)
+	app.Commands = append(app.Commands, clearCommand)
 
 	err := app.Run(os.Args)
 	if err != nil {

@@ -77,13 +77,13 @@ func RegisterNewAmbariEntry(id string, hostname string, port int, protocol strin
 	defer db.Close()
 	rows, err := db.Query("SELECT id FROM ambari_registry WHERE id = '" + id + "'")
 	checkErr(err)
-	var check_id string
+	var checkId string
 	for rows.Next() {
-		rows.Scan(&check_id)
+		rows.Scan(&checkId)
 	}
 	rows.Close()
-	if len(check_id) > 0 {
-		alreadyExistMsg := fmt.Sprintf("Registry with id '%s' is already defined as a registry entry", check_id)
+	if len(checkId) > 0 {
+		alreadyExistMsg := fmt.Sprintf("Registry with id '%s' is already defined as a registry entry", checkId)
 		fmt.Println(alreadyExistMsg)
 		os.Exit(1)
 	}

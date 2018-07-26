@@ -31,17 +31,17 @@ func createHostsType(item Item, hosts []Host) []Host {
 	if hosts_val, ok := item["Hosts"]; ok {
 		host := Host{}
 		hostI := hosts_val.(map[string]interface{})
-		if hostname, ok := hostI["host_name"]; ok {
-			host.HostName = hostname.(string)
+		if hostName, ok := hostI["host_name"]; ok {
+			host.HostName = hostName.(string)
 		}
 		if ip, ok := hostI["ip"]; ok {
 			host.IP = ip.(string)
 		}
-		if public_host_name, ok := hostI["public_host_name"]; ok {
-			host.PublicHostname = public_host_name.(string)
+		if publicHostName, ok := hostI["public_host_name"]; ok {
+			host.PublicHostname = publicHostName.(string)
 		}
-		if host_state, ok := hostI["host_state"]; ok {
-			host.HostState = host_state.(string)
+		if hostState, ok := hostI["host_state"]; ok {
+			host.HostState = hostState.(string)
 		}
 
 		hosts = append(hosts, host)
