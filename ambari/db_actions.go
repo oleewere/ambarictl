@@ -17,7 +17,7 @@ package ambari
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mattn/go-sqlite3"
 	"os"
 	"os/user"
 	"path"
@@ -26,7 +26,7 @@ import (
 
 // CreateAmbariRegistryDb initialize ambari-manager database
 func CreateAmbariRegistryDb() {
-	db, err := sql.Open("sqlite3", getDbFile())
+	db, err := getDb()
 	checkErr(err)
 	defer db.Close()
 	statement, err := db.Prepare("CREATE TABLE IF NOT EXISTS ambari_registry (id VARCHAR PRIMARY KEY, hostname VARCHAR, port INTEGER, protocol VARCHAR, username VARCHAR, password VARCHAR, cluster TEXT, active INTEGER)")
@@ -36,7 +36,7 @@ func CreateAmbariRegistryDb() {
 
 // DropAmbariRegistryRecords drop all entries from ambari-manager database
 func DropAmbariRegistryRecords() {
-	db, err := sql.Open("sqlite3", getDbFile())
+	db, err := getDb()
 	checkErr(err)
 	defer db.Close()
 	statement, err := db.Prepare("DELETE from ambari_registry")
@@ -46,7 +46,7 @@ func DropAmbariRegistryRecords() {
 
 // ListAmbariRegistryEntries get all ambari registries from ambari-manager database
 func ListAmbariRegistryEntries() {
-	db, err := sql.Open("sqlite3", getDbFile())
+	db, err := getDb()
 	checkErr(err)
 	defer db.Close()
 	rows, err := db.Query("SELECT id,hostname,port,protocol,username,cluster,active FROM ambari_registry")
@@ -72,7 +72,7 @@ func ListAmbariRegistryEntries() {
 
 // RegisterNewAmbariEntry create new ambari registry entry in ambari-manager database
 func RegisterNewAmbariEntry(id string, hostname string, port int, protocol string, username string, password string, cluster string) {
-	db, err := sql.Open("sqlite3", getDbFile())
+	db, err := getDb()
 	checkErr(err)
 	defer db.Close()
 	rows, err := db.Query("SELECT id FROM ambari_registry WHERE id = '" + id + "'")
@@ -113,6 +113,11 @@ func GetActiveAmbari() AmbariRegistry {
 	rows.Close()
 
 	return AmbariRegistry{name: id, hostname: hostname, port: port, protocol: protocol, username: username, password: password, cluster: cluster, active: 1}
+}
+
+func getDb() (*sql.DB, error) {
+	sql.Register("sqlite3", &sqlite3.SQLiteDriver{})
+	return sql.Open("sqlite3", getDbFile())
 }
 
 func getDbFile() string {
