@@ -55,9 +55,17 @@ type Component struct {
 	ComponentState string `json:"state,omitempty"`
 }
 
+// HostComponent ambari managed host component details
+type HostComponent struct {
+	HostComponentName  string `json:"host_component_name,omitempty"`
+	HostComponentState string `json:"state,omitempty"`
+	HostComponntHost   string `json:"host_name,omitempty"`
+}
+
 // Response common type which wraps all of the possible response entry types
 type Response struct {
-	Hosts      []Host
-	Services   []Service
-	Components []Component
+	Hosts          []Host
+	Services       []Service
+	Components     []Component
+	HostComponents []HostComponent
 }

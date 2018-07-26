@@ -117,6 +117,36 @@ func main() {
 		},
 	}
 
+	listHostComponentsCommand := cli.Command{
+		Name:  "host-components",
+		Usage: "Print all installed Ambari host components by component name",
+		Action: func(c *cli.Context) error {
+			ambariRegistry := ambari.GetActiveAmbari()
+			var param string
+			useHost := false
+			if len(c.String("component")) > 0 {
+				param = c.String("component")
+			} else if len(c.String("host")) > 0 {
+				param = c.String("host")
+				useHost = true
+			} else {
+				fmt.Println("Flag '--component' or `--`with a value is required for 'host-components' action!")
+				os.Exit(1)
+			}
+			components := ambariRegistry.ListHostComponents(param, useHost)
+			var tableData [][]string
+			for _, hostComponent := range components {
+				tableData = append(tableData, []string{hostComponent.HostComponentName, hostComponent.HostComponntHost, hostComponent.HostComponentState})
+			}
+			printTable("HOST COMPONENTS: " + param, []string{"NAME", "HOST", "STATE"}, tableData)
+			return nil
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "component", Usage: "Component filter for host components"},
+			cli.StringFlag{Name: "host", Usage: "Host name filter for host components"},
+		},
+	}
+
 	registerCommand := cli.Command{
 		Name:  "register",
 		Usage: "Register new Ambari entry",
@@ -124,6 +154,15 @@ func main() {
 			ambari.RegisterNewAmbariEntry("vagrant", "c7401.ambari.apache.org", 8080, "http",
 				"admin", "admin", "cl1")
 			return nil
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "name", Usage: "Name of the Ambari registry entry"},
+			cli.StringFlag{Name: "host", Usage: "Hostname of the Ambari Server"},
+			cli.IntFlag{Name: "port", Usage: "Port for Ambari Server"},
+			cli.BoolFlag{Name: "ssl", Usage: "Enabled TLS/SSL for Ambari"},
+			cli.StringFlag{Name: "username", Usage: "Ambari user"},
+			cli.StringFlag{Name: "password", Usage: "Password for Ambari user"},
+			cli.StringFlag{Name: "cluster", Usage: "Cluster name"},
 		},
 	}
 
@@ -156,6 +195,7 @@ func main() {
 	app.Commands = append(app.Commands, listAgentsCommand)
 	app.Commands = append(app.Commands, listServicesCommand)
 	app.Commands = append(app.Commands, listComponentsCommand)
+	app.Commands = append(app.Commands, listHostComponentsCommand)
 	app.Commands = append(app.Commands, showCommand)
 	app.Commands = append(app.Commands, registerCommand)
 	app.Commands = append(app.Commands, clearCommand)
