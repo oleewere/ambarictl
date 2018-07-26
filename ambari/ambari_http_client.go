@@ -52,12 +52,9 @@ func (a AmbariRegistry) CreatePostRequest(body bytes.Buffer, urlSuffix string, u
 // Create Ambari uri with /api/v1/ suffix (+ /api/v1/clusters/<cluster> suffix is useCluster is enabled)
 func (a AmbariRegistry) GetAmbariUri(uriSuffix string, useCluster bool) string {
 	if useCluster {
-		uri := fmt.Sprintf("%s://%s:%v/api/v1/clusters/%s/%s", a.protocol, a.hostname, a.port, a.cluster, uriSuffix)
-		return uri
-	} else {
-		uri := fmt.Sprintf("%s://%s:%v/api/v1/%s", a.protocol, a.hostname, a.port, uriSuffix)
-		return uri
+		return fmt.Sprintf("%s://%s:%v/api/v1/clusters/%s/%s", a.protocol, a.hostname, a.port, a.cluster, uriSuffix)
 	}
+	return fmt.Sprintf("%s://%s:%v/api/v1/%s", a.protocol, a.hostname, a.port, uriSuffix)
 }
 
 // Create Http client for Ambari
