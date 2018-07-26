@@ -18,11 +18,16 @@ package ambari
 func (a AmbariItems) ConvertResponse() Response {
 	response := Response{}
 	hosts := []Host{}
+	services := []Service{}
 	for _, item := range a.Items {
 		hosts = createHostsType(item, hosts)
+		services = createServicesType(item, services)
 	}
 	if len(hosts) > 0 {
 		response.Hosts = hosts
+	}
+	if len(services) > 0 {
+		response.Services = services
 	}
 	return response
 }
@@ -47,4 +52,19 @@ func createHostsType(item Item, hosts []Host) []Host {
 		hosts = append(hosts, host)
 	}
 	return hosts
+}
+
+func createServicesType(item Item, services []Service) []Service {
+	if servicesVal, ok := item["ServiceInfo"]; ok {
+		service := Service{}
+		serviceI := servicesVal.(map[string]interface{})
+		if serviceName, ok := serviceI["service_name"]; ok {
+			service.ServiceName = serviceName.(string)
+		}
+		if serviceState, ok := serviceI["state"]; ok {
+			service.ServiceState = serviceState.(string)
+		}
+		services = append(services, service)
+	}
+	return services
 }

@@ -43,7 +43,14 @@ type Host struct {
 	HostState      string `json:"host_state,omitempty"`
 }
 
+// Service ambari managed service info
+type Service struct {
+	ServiceName  string `json:"service_name,omitempty"`
+	ServiceState string `json:"state,omitempty"`
+}
+
 // Response common type which wraps all of the possible response entry types
 type Response struct {
-	Hosts []Host
+	Hosts    []Host
+	Services []Service
 }

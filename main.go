@@ -78,6 +78,22 @@ func main() {
 		},
 	}
 
+	listServicesCommand := cli.Command{
+		Name:  "services",
+		Usage: "Print all installed Ambari services",
+		Action: func(c *cli.Context) error {
+			ambariRegistry := ambari.GetActiveAmbari()
+			services := ambariRegistry.ListServices()
+			fmt.Println("Installed services:")
+			fmt.Println("-------------------")
+			for _, service := range services {
+				serviceEntry := fmt.Sprintf("%s (state: %s)", service.ServiceName, service.ServiceState)
+				fmt.Println(serviceEntry)
+			}
+			return nil
+		},
+	}
+
 	registerCommand := cli.Command{
 		Name:  "register",
 		Usage: "Register new Ambari entry",
@@ -112,6 +128,7 @@ func main() {
 	app.Commands = append(app.Commands, initCommand)
 	app.Commands = append(app.Commands, listCommand)
 	app.Commands = append(app.Commands, listAgentsCommand)
+	app.Commands = append(app.Commands, listServicesCommand)
 	app.Commands = append(app.Commands, showCommand)
 	app.Commands = append(app.Commands, registerCommand)
 	app.Commands = append(app.Commands, clearCommand)

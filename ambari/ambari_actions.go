@@ -25,6 +25,13 @@ func (a AmbariRegistry) ListAgents() []Host {
 	return ambariItems.ConvertResponse().Hosts
 }
 
+// ListServices get all installed services
+func (a AmbariRegistry) ListServices() []Service {
+	request := a.CreateGetRequest("services?fields=ServiceInfo/state,ServiceInfo/service_name", true)
+	ambariItems := ProcessAmbariItems(request)
+	return ambariItems.ConvertResponse().Services
+}
+
 // ShowDetails get the registered Ambari server details
 func (a AmbariRegistry) ShowDetails() {
 	details := fmt.Sprintf("%s - %s://%s:%v - %s - %s / ********", a.name, a.protocol,
