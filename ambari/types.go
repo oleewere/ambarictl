@@ -16,14 +16,14 @@ package ambari
 
 // AmbariRegistry represents registered ambari server entry details
 type AmbariRegistry struct {
-	name     string
-	hostname string
-	port     int
-	username string
-	password string
-	protocol string
-	cluster  string
-	active   int
+	Name     string
+	Hostname string
+	Port     int
+	Username string
+	Password string
+	Protocol string
+	Cluster  string
+	Active   int
 }
 
 // AmbariItems global items from Ambari rest API response

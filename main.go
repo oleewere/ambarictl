@@ -19,6 +19,8 @@ import (
 	"github.com/oleewere/ambari-manager/ambari"
 	"github.com/urfave/cli"
 	"os"
+	"github.com/olekukonko/tablewriter"
+	"strconv"
 )
 
 // Version that will be generated during the build as a constant
@@ -55,9 +57,17 @@ func main() {
 		Name:  "list",
 		Usage: "Print all registered Ambari registries",
 		Action: func(c *cli.Context) error {
-			fmt.Println("Ambari registries:")
-			fmt.Println("------------------")
-			ambari.ListAmbariRegistryEntries()
+			ambariServerEntries := ambari.ListAmbariRegistryEntries()
+			var tableData [][]string
+			for _, ambariServer := range ambariServerEntries {
+				activeValue := "false"
+				if ambariServer.Active == 1 {
+					activeValue = "true"
+				}
+				tableData = append(tableData, []string{ambariServer.Name, ambariServer.Hostname, strconv.Itoa(ambariServer.Port), ambariServer.Protocol,
+				ambariServer.Username, "********", ambariServer.Cluster, activeValue})
+			}
+			printTable("AMBARI REGISTRIES:", []string{"Name", "HOSTNAME", "PORT", "PROTOCOL", "USER", "PASSWORD", "CLUSTER", "ACTIVE"}, tableData)
 			return nil
 		},
 	}
@@ -68,12 +78,11 @@ func main() {
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			hosts := ambariRegistry.ListAgents()
-			fmt.Println("Registered hosts:")
-			fmt.Println("-----------------")
+			var tableData [][]string
 			for _, host := range hosts {
-				hostEntry := fmt.Sprintf("%s (ip: %s) - state: %s", host.PublicHostname, host.IP, host.HostState)
-				fmt.Println(hostEntry)
+				tableData = append(tableData, []string{host.PublicHostname, host.IP, host.HostState})
 			}
+			printTable("HOSTS:", []string{"PUBLIC HOSTNAME", "IP", "STATE"}, tableData)
 			return nil
 		},
 	}
@@ -84,12 +93,11 @@ func main() {
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			services := ambariRegistry.ListServices()
-			fmt.Println("Installed services:")
-			fmt.Println("-------------------")
+			var tableData [][]string
 			for _, service := range services {
-				serviceEntry := fmt.Sprintf("%s (state: %s)", service.ServiceName, service.ServiceState)
-				fmt.Println(serviceEntry)
+				tableData = append(tableData, []string{service.ServiceName, service.ServiceState})
 			}
+			printTable("SERVICES:", []string{"NAME", "STATE"}, tableData)
 			return nil
 		},
 	}
@@ -100,12 +108,11 @@ func main() {
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			components := ambariRegistry.ListComponents()
-			fmt.Println("Installed components:")
-			fmt.Println("-------------------")
+			var tableData [][]string
 			for _, component := range components {
-				componentEntry := fmt.Sprintf("%s (state: %s)", component.ComponentName, component.ComponentState)
-				fmt.Println(componentEntry)
+				tableData = append(tableData, []string{component.ComponentName, component.ComponentState})
 			}
+			printTable("COMPONENTS:", []string{"NAME", "STATE"}, tableData)
 			return nil
 		},
 	}
@@ -134,9 +141,12 @@ func main() {
 		Usage: "Show active Ambari registry details",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
-			fmt.Println("Active Ambari registry:")
-			fmt.Println("-----------------------")
-			ambariRegistry.ShowDetails()
+			var tableData [][]string
+			if len(ambariRegistry.Name) > 0 {
+				tableData = append(tableData, []string{ambariRegistry.Name, ambariRegistry.Hostname, strconv.Itoa(ambariRegistry.Port), ambariRegistry.Protocol,
+					ambariRegistry.Username, "********", ambariRegistry.Cluster, "true"})
+			}
+			printTable("ACTIVE AMBARI REGISTRY:", []string{"Name", "HOSTNAME", "PORT", "PROTOCOL", "USER", "PASSWORD", "CLUSTER", "ACTIVE"}, tableData)
 			return nil
 		},
 	}
@@ -154,5 +164,22 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+}
+
+func printTable(title string, headers []string, data [][]string) {
+	fmt.Println(title)
+	if len(data) > 0 {table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader(headers)
+		for _, v := range data {
+			table.Append(v)
+		}
+		table.Render()
+	} else {
+		for i:= 1; i <= len(title); i++ {
+			fmt.Print("-")
+		}
+		fmt.Println()
+		fmt.Println("NO ENTRIES FOUND!")
 	}
 }

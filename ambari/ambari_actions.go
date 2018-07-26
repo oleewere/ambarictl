@@ -14,10 +14,6 @@
 
 package ambari
 
-import (
-	"fmt"
-)
-
 // ListAgents get all the registered hosts
 func (a AmbariRegistry) ListAgents() []Host {
 	request := a.CreateGetRequest("hosts?fields=Hosts/public_host_name,Hosts/ip,Hosts/host_state", false)
@@ -37,11 +33,4 @@ func (a AmbariRegistry) ListComponents() []Component {
 	request := a.CreateGetRequest("components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/state", true)
 	ambariItems := ProcessAmbariItems(request)
 	return ambariItems.ConvertResponse().Components
-}
-
-// ShowDetails get the registered Ambari server details
-func (a AmbariRegistry) ShowDetails() {
-	details := fmt.Sprintf("%s - %s://%s:%v - %s - %s / ********", a.name, a.protocol,
-		a.hostname, a.port, a.cluster, a.username)
-	fmt.Println(details)
 }

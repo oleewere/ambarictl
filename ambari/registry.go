@@ -45,29 +45,29 @@ func DropAmbariRegistryRecords() {
 }
 
 // ListAmbariRegistryEntries get all ambari registries from ambari-manager database
-func ListAmbariRegistryEntries() {
+func ListAmbariRegistryEntries() []AmbariRegistry {
 	db, err := getDb()
 	checkErr(err)
 	defer db.Close()
-	rows, err := db.Query("SELECT id,hostname,port,protocol,username,cluster,active FROM ambari_registry")
+	rows, err := db.Query("SELECT id,hostname,port,protocol,username,password,cluster,active FROM ambari_registry")
 	checkErr(err)
 	var id string
 	var hostname string
 	var port int
 	var protocol string
 	var username string
+	var password string
 	var cluster string
 	var active int
+	var ambariRegistries []AmbariRegistry
 	for rows.Next() {
-		rows.Scan(&id, &hostname, &port, &protocol, &username, &cluster, &active)
-		activeValue := false
-		if active == 1 {
-			activeValue = true
-		}
-		rowDetails := fmt.Sprintf("%s - %s://%s:%v - %s - %s / ******** - active: %v", id, protocol, hostname, port, cluster, username, activeValue)
-		fmt.Println(rowDetails)
+		rows.Scan(&id, &hostname, &port, &protocol, &username, &password, &cluster, &active)
+		ambariRegistry := AmbariRegistry{Name: id, Hostname: hostname, Port: port, Protocol: protocol,
+			Username: username, Password: password, Cluster: cluster, Active: active}
+		ambariRegistries = append(ambariRegistries, ambariRegistry)
 	}
 	rows.Close()
+	return ambariRegistries
 }
 
 // RegisterNewAmbariEntry create new ambari registry entry in ambari-manager database
@@ -112,7 +112,7 @@ func GetActiveAmbari() AmbariRegistry {
 	}
 	rows.Close()
 
-	return AmbariRegistry{name: id, hostname: hostname, port: port, protocol: protocol, username: username, password: password, cluster: cluster, active: 1}
+	return AmbariRegistry{Name: id, Hostname: hostname, Port: port, Protocol: protocol, Username: username, Password: password, Cluster: cluster, Active: 1}
 }
 
 func getDb() (*sql.DB, error) {

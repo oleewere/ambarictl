@@ -33,7 +33,7 @@ func (a AmbariRegistry) CreateGetRequest(urlSuffix string, useCluster bool) *htt
 		panic(err)
 	}
 	request.Header.Add("Content-Type", "application/json")
-	request.SetBasicAuth(a.username, a.password)
+	request.SetBasicAuth(a.Username, a.Password)
 	return request
 }
 
@@ -45,16 +45,16 @@ func (a AmbariRegistry) CreatePostRequest(body bytes.Buffer, urlSuffix string, u
 		panic(err)
 	}
 	request.Header.Add("Content-Type", "application/json")
-	request.SetBasicAuth(a.username, a.password)
+	request.SetBasicAuth(a.Username, a.Password)
 	return request
 }
 
 // GetAmbariUri creates the Ambari uri with /api/v1/ suffix (+ /api/v1/clusters/<cluster> suffix is useCluster is enabled)
 func (a AmbariRegistry) GetAmbariUri(uriSuffix string, useCluster bool) string {
 	if useCluster {
-		return fmt.Sprintf("%s://%s:%v/api/v1/clusters/%s/%s", a.protocol, a.hostname, a.port, a.cluster, uriSuffix)
+		return fmt.Sprintf("%s://%s:%v/api/v1/clusters/%s/%s", a.Protocol, a.Hostname, a.Port, a.Cluster, uriSuffix)
 	}
-	return fmt.Sprintf("%s://%s:%v/api/v1/%s", a.protocol, a.hostname, a.port, uriSuffix)
+	return fmt.Sprintf("%s://%s:%v/api/v1/%s", a.Protocol, a.Hostname, a.Port, uriSuffix)
 }
 
 // GetHttpClient create HTTP client instance for Ambari
