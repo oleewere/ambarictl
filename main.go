@@ -94,6 +94,22 @@ func main() {
 		},
 	}
 
+	listComponentsCommand := cli.Command{
+		Name:  "components",
+		Usage: "Print all installed Ambari components",
+		Action: func(c *cli.Context) error {
+			ambariRegistry := ambari.GetActiveAmbari()
+			components := ambariRegistry.ListComponents()
+			fmt.Println("Installed components:")
+			fmt.Println("-------------------")
+			for _, component := range components {
+				componentEntry := fmt.Sprintf("%s (state: %s)", component.ComponentName, component.ComponentState)
+				fmt.Println(componentEntry)
+			}
+			return nil
+		},
+	}
+
 	registerCommand := cli.Command{
 		Name:  "register",
 		Usage: "Register new Ambari entry",
@@ -129,6 +145,7 @@ func main() {
 	app.Commands = append(app.Commands, listCommand)
 	app.Commands = append(app.Commands, listAgentsCommand)
 	app.Commands = append(app.Commands, listServicesCommand)
+	app.Commands = append(app.Commands, listComponentsCommand)
 	app.Commands = append(app.Commands, showCommand)
 	app.Commands = append(app.Commands, registerCommand)
 	app.Commands = append(app.Commands, clearCommand)

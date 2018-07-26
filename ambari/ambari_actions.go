@@ -32,6 +32,13 @@ func (a AmbariRegistry) ListServices() []Service {
 	return ambariItems.ConvertResponse().Services
 }
 
+//ListComponents get all installed components
+func (a AmbariRegistry) ListComponents() []Component {
+	request := a.CreateGetRequest("components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/state", true)
+	ambariItems := ProcessAmbariItems(request)
+	return ambariItems.ConvertResponse().Components
+}
+
 // ShowDetails get the registered Ambari server details
 func (a AmbariRegistry) ShowDetails() {
 	details := fmt.Sprintf("%s - %s://%s:%v - %s - %s / ********", a.name, a.protocol,

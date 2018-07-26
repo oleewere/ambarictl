@@ -19,15 +19,20 @@ func (a AmbariItems) ConvertResponse() Response {
 	response := Response{}
 	hosts := []Host{}
 	services := []Service{}
+	components := []Component{}
 	for _, item := range a.Items {
 		hosts = createHostsType(item, hosts)
 		services = createServicesType(item, services)
+		components = createComponentsType(item, components)
 	}
 	if len(hosts) > 0 {
 		response.Hosts = hosts
 	}
 	if len(services) > 0 {
 		response.Services = services
+	}
+	if len(components) > 0 {
+		response.Components = components
 	}
 	return response
 }
@@ -52,6 +57,22 @@ func createHostsType(item Item, hosts []Host) []Host {
 		hosts = append(hosts, host)
 	}
 	return hosts
+}
+
+func createComponentsType(item Item, components []Component) []Component {
+	if componentVal, ok := item["ServiceComponentInfo"]; ok {
+		component := Component{}
+		componentI := componentVal.(map[string]interface{})
+		if componentName, ok := componentI["component_name"]; ok {
+			component.ComponentName = componentName.(string)
+		}
+		if state, ok := componentI["state"]; ok {
+			component.ComponentState = state.(string)
+		}
+
+		components = append(components, component)
+	}
+	return components
 }
 
 func createServicesType(item Item, services []Service) []Service {

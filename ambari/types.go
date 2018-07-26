@@ -49,8 +49,15 @@ type Service struct {
 	ServiceState string `json:"state,omitempty"`
 }
 
+// Component ambari managed component details
+type Component struct {
+	ComponentName  string `json:"component_name,omitempty"`
+	ComponentState string `json:"state,omitempty"`
+}
+
 // Response common type which wraps all of the possible response entry types
 type Response struct {
-	Hosts    []Host
-	Services []Service
+	Hosts      []Host
+	Services   []Service
+	Components []Component
 }
