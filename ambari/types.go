@@ -24,3 +24,7 @@ type Host struct {
 	PublicHostname string `json:"public_host_name,omitempty"`
 	HostState      string `json:"host_state,omitempty"`
 }
+
+type Response struct {
+	Hosts []Host
+}
