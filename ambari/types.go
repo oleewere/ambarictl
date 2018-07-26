@@ -14,6 +14,7 @@
 
 package ambari
 
+// Ambari registry entry details
 type AmbariRegistry struct {
 	name     string
 	hostname string
@@ -25,13 +26,16 @@ type AmbariRegistry struct {
 	active   int
 }
 
+// Global items from Ambari rest API response
 type AmbariItems struct {
 	Href  string `json:"href"`
 	Items []Item `json:"items"`
 }
 
+// Dynamic map - cast contents to specific types
 type Item map[string]interface{}
 
+// Agent host details
 type Host struct {
 	HostName       string `json:"host_name,omitempty"`
 	IP             string `json:"ip,omitempty"`
@@ -39,6 +43,7 @@ type Host struct {
 	HostState      string `json:"host_state,omitempty"`
 }
 
+// Response type which wraps all of the possible response entry types
 type Response struct {
 	Hosts []Host
 }

@@ -24,8 +24,9 @@ import (
 	"path"
 )
 
+// Initialize ambari-manager database
 func CreateAmbariRegistryDb() {
-	db, err := sql.Open("sqlite3", GetDbFile())
+	db, err := sql.Open("sqlite3", getDbFile())
 	checkErr(err)
 	defer db.Close()
 	statement, err := db.Prepare("CREATE TABLE IF NOT EXISTS ambari_registry (id VARCHAR PRIMARY KEY, hostname VARCHAR, port INTEGER, protocol VARCHAR, username VARCHAR, password VARCHAR, cluster TEXT, active INTEGER)")
@@ -33,8 +34,9 @@ func CreateAmbariRegistryDb() {
 	statement.Exec()
 }
 
+// Drop all entries from ambari-manager database
 func DropAmbariRegistryRecords() {
-	db, err := sql.Open("sqlite3", GetDbFile())
+	db, err := sql.Open("sqlite3", getDbFile())
 	checkErr(err)
 	defer db.Close()
 	statement, err := db.Prepare("DELETE from ambari_registry")
@@ -42,8 +44,10 @@ func DropAmbariRegistryRecords() {
 	statement.Exec()
 }
 
+
+// Get all ambari registries from ambari-manager database
 func ListAmbariRegistryEntries() {
-	db, err := sql.Open("sqlite3", GetDbFile())
+	db, err := sql.Open("sqlite3", getDbFile())
 	checkErr(err)
 	defer db.Close()
 	rows, err := db.Query("SELECT id,hostname,port,protocol,username,cluster,active FROM ambari_registry")
@@ -67,8 +71,9 @@ func ListAmbariRegistryEntries() {
 	rows.Close()
 }
 
+// Create new ambari registry entry in ambari-manager database
 func RegisterNewAmbariEntry(id string, hostname string, port int, protocol string, username string, password string, cluster string) {
-	db, err := sql.Open("sqlite3", GetDbFile())
+	db, err := sql.Open("sqlite3", getDbFile())
 	checkErr(err)
 	defer db.Close()
 	rows, err := db.Query("SELECT id FROM ambari_registry WHERE id = '" + id + "'")
@@ -89,8 +94,9 @@ func RegisterNewAmbariEntry(id string, hostname string, port int, protocol strin
 	checkErr(insertErr)
 }
 
+// Get the active ambari registry from ambari-manager database (should be only one)
 func GetActiveAmbari() AmbariRegistry {
-	db, err := sql.Open("sqlite3", GetDbFile())
+	db, err := sql.Open("sqlite3", getDbFile())
 	checkErr(err)
 	defer db.Close()
 	rows, err := db.Query("SELECT id,hostname,port,protocol,username,password,cluster FROM ambari_registry WHERE active = '1'")
@@ -110,7 +116,7 @@ func GetActiveAmbari() AmbariRegistry {
 	return AmbariRegistry{name: id, hostname:hostname, port: port, protocol: protocol, username: username, password: password, cluster: cluster, active: 1}
 }
 
-func GetDbFile() string {
+func getDbFile() string {
 	usr, err := user.Current()
 	if err != nil {
 		panic(err)
