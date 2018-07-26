@@ -40,10 +40,10 @@ func (a AmbariRegistry) ListComponents() []Component {
 //ListHostComponents get all installed host components by component type
 func (a AmbariRegistry) ListHostComponents(param string, useHost bool) []HostComponent {
 	var request *http.Request
-	if (useHost) {
-		request = a.CreateGetRequest("host_components?fields=HostRoles/component_name,HostRoles/state,HostRoles/host_name&HostRoles/host_name=" + param, true)
+	if useHost {
+		request = a.CreateGetRequest("host_components?fields=HostRoles/component_name,HostRoles/state,HostRoles/host_name&HostRoles/host_name="+param, true)
 	} else {
-		request = a.CreateGetRequest("host_components?fields=HostRoles/component_name,HostRoles/state,HostRoles/host_name&HostRoles/component_name=" + param, true)
+		request = a.CreateGetRequest("host_components?fields=HostRoles/component_name,HostRoles/state,HostRoles/host_name&HostRoles/component_name="+param, true)
 	}
 	ambariItems := ProcessAmbariItems(request)
 	return ambariItems.ConvertResponse().HostComponents

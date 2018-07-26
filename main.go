@@ -17,9 +17,9 @@ package main
 import (
 	"fmt"
 	"github.com/oleewere/ambari-manager/ambari"
+	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli"
 	"os"
-	"github.com/olekukonko/tablewriter"
 	"strconv"
 )
 
@@ -65,7 +65,7 @@ func main() {
 					activeValue = "true"
 				}
 				tableData = append(tableData, []string{ambariServer.Name, ambariServer.Hostname, strconv.Itoa(ambariServer.Port), ambariServer.Protocol,
-				ambariServer.Username, "********", ambariServer.Cluster, activeValue})
+					ambariServer.Username, "********", ambariServer.Cluster, activeValue})
 			}
 			printTable("AMBARI REGISTRIES:", []string{"Name", "HOSTNAME", "PORT", "PROTOCOL", "USER", "PASSWORD", "CLUSTER", "ACTIVE"}, tableData)
 			return nil
@@ -138,7 +138,7 @@ func main() {
 			for _, hostComponent := range components {
 				tableData = append(tableData, []string{hostComponent.HostComponentName, hostComponent.HostComponntHost, hostComponent.HostComponentState})
 			}
-			printTable("HOST COMPONENTS: " + param, []string{"NAME", "HOST", "STATE"}, tableData)
+			printTable("HOST COMPONENTS: "+param, []string{"NAME", "HOST", "STATE"}, tableData)
 			return nil
 		},
 		Flags: []cli.Flag{
@@ -209,14 +209,15 @@ func main() {
 
 func printTable(title string, headers []string, data [][]string) {
 	fmt.Println(title)
-	if len(data) > 0 {table := tablewriter.NewWriter(os.Stdout)
+	if len(data) > 0 {
+		table := tablewriter.NewWriter(os.Stdout)
 		table.SetHeader(headers)
 		for _, v := range data {
 			table.Append(v)
 		}
 		table.Render()
 	} else {
-		for i:= 1; i <= len(title); i++ {
+		for i := 1; i <= len(title); i++ {
 			fmt.Print("-")
 		}
 		fmt.Println()
