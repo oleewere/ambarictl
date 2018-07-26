@@ -16,12 +16,12 @@ package ambari
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
 	"fmt"
-	"strconv"
+	_ "github.com/mattn/go-sqlite3"
 	"os"
 	"os/user"
 	"path"
+	"strconv"
 )
 
 // Initialize ambari-manager database
@@ -43,7 +43,6 @@ func DropAmbariRegistryRecords() {
 	checkErr(err)
 	statement.Exec()
 }
-
 
 // Get all ambari registries from ambari-manager database
 func ListAmbariRegistryEntries() {
@@ -113,7 +112,7 @@ func GetActiveAmbari() AmbariRegistry {
 	}
 	rows.Close()
 
-	return AmbariRegistry{name: id, hostname:hostname, port: port, protocol: protocol, username: username, password: password, cluster: cluster, active: 1}
+	return AmbariRegistry{name: id, hostname: hostname, port: port, protocol: protocol, username: username, password: password, cluster: cluster, active: 1}
 }
 
 func getDbFile() string {

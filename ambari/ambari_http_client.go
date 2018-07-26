@@ -15,14 +15,14 @@
 package ambari
 
 import (
-	"net/http"
 	"bytes"
-	"fmt"
-	"time"
 	"crypto/tls"
-	"os"
-	"io/ioutil"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"time"
 )
 
 // Create Ambari GET request
@@ -69,7 +69,7 @@ func GetHttpClient() *http.Client {
 			IdleConnTimeout:       30 * time.Second,
 			ResponseHeaderTimeout: 10 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 		},
 	}
 	return httpClient

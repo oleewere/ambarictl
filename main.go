@@ -15,10 +15,10 @@
 package main
 
 import (
+	"fmt"
+	"github.com/oleewere/ambari-manager/ambari"
 	"github.com/urfave/cli"
 	"os"
-	"github.com/oleewere/ambari-manager/ambari"
-	"fmt"
 )
 
 var Version string
@@ -41,7 +41,7 @@ func main() {
 
 	app.Commands = []cli.Command{}
 	init_command := cli.Command{
-		Name: "init",
+		Name:  "init",
 		Usage: "Initialize Ambari context (db)",
 		Action: func(c *cli.Context) error {
 			ambari.CreateAmbariRegistryDb()
@@ -49,7 +49,7 @@ func main() {
 		},
 	}
 	list_command := cli.Command{
-		Name: "list",
+		Name:  "list",
 		Usage: "Print all registered Ambari registries",
 		Action: func(c *cli.Context) error {
 			ambari.ListAmbariRegistryEntries()
@@ -58,7 +58,7 @@ func main() {
 	}
 
 	list_agents_command := cli.Command{
-		Name: "hosts",
+		Name:  "hosts",
 		Usage: "Print all registered Ambari registries",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
@@ -74,7 +74,7 @@ func main() {
 	}
 
 	register_command := cli.Command{
-		Name: "register",
+		Name:  "register",
 		Usage: "Register new Ambari entry",
 		Action: func(c *cli.Context) error {
 			ambari.RegisterNewAmbariEntry("vagrant", "c7401.ambari.apache.org", 8080, "http",
@@ -84,7 +84,7 @@ func main() {
 	}
 
 	clear_command := cli.Command{
-		Name: "clear",
+		Name:  "clear",
 		Usage: "Drop all Ambari registry records",
 		Action: func(c *cli.Context) error {
 			ambari.DropAmbariRegistryRecords()
@@ -93,7 +93,7 @@ func main() {
 	}
 
 	show_command := cli.Command{
-		Name: "show",
+		Name:  "show",
 		Usage: "Show active Ambari registry details",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
