@@ -116,7 +116,16 @@ func GetActiveAmbari() AmbariRegistry {
 }
 
 func getDb() (*sql.DB, error) {
-	sql.Register("sqlite3", &sqlite3.SQLiteDriver{})
+	drivers := sql.Drivers()
+	driverExists := false
+	for _, driver := range drivers {
+		if driver == "sqlite3" {
+			driverExists = true
+		}
+	}
+	if !driverExists {
+		sql.Register("sqlite3", &sqlite3.SQLiteDriver{})
+	}
 	return sql.Open("sqlite3", getDbFile())
 }
 
