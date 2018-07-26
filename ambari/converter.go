@@ -28,9 +28,9 @@ func (a AmbariItems) ConvertResponse() Response {
 }
 
 func createHostsType(item Item, hosts []Host) []Host {
-	if hosts_val, ok := item["Hosts"]; ok {
+	if hostsVal, ok := item["Hosts"]; ok {
 		host := Host{}
-		hostI := hosts_val.(map[string]interface{})
+		hostI := hostsVal.(map[string]interface{})
 		if hostName, ok := hostI["host_name"]; ok {
 			host.HostName = hostName.(string)
 		}

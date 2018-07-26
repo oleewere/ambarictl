@@ -83,8 +83,8 @@ func ProcessAmbariItems(request *http.Request) AmbariItems {
 	defer response.Body.Close()
 	bodyBytes, err := ioutil.ReadAll(response.Body)
 	var ambariItems AmbariItems
-	json_err := json.Unmarshal(bodyBytes, &ambariItems)
-	if json_err != nil {
+	jsonErr := json.Unmarshal(bodyBytes, &ambariItems)
+	if jsonErr != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
