@@ -55,6 +55,8 @@ func main() {
 		Name:  "list",
 		Usage: "Print all registered Ambari registries",
 		Action: func(c *cli.Context) error {
+			fmt.Println("Ambari registries:")
+			fmt.Println("------------------")
 			ambari.ListAmbariRegistryEntries()
 			return nil
 		},
