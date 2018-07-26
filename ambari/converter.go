@@ -14,7 +14,7 @@
 
 package ambari
 
-// Convert response items to specific types
+// ConvertResponse converts the response items to specific types
 func (a AmbariItems) ConvertResponse() Response {
 	response := Response{}
 	hosts := []Host{}

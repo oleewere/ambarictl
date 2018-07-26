@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-// Create Ambari GET request
+// CreateGetRequest creates an Ambari GET request
 func (a AmbariRegistry) CreateGetRequest(urlSuffix string, useCluster bool) *http.Request {
 	uri := a.GetAmbariUri(urlSuffix, useCluster)
 	request, err := http.NewRequest("GET", uri, nil)
@@ -37,7 +37,7 @@ func (a AmbariRegistry) CreateGetRequest(urlSuffix string, useCluster bool) *htt
 	return request
 }
 
-// Create Ambari POST request with body
+// CreatePostRequest creates an Ambari POST request with body
 func (a AmbariRegistry) CreatePostRequest(body bytes.Buffer, urlSuffix string, useCluster bool) *http.Request {
 	uri := a.GetAmbariUri(urlSuffix, useCluster)
 	request, err := http.NewRequest("POST", uri, &body)
@@ -49,7 +49,7 @@ func (a AmbariRegistry) CreatePostRequest(body bytes.Buffer, urlSuffix string, u
 	return request
 }
 
-// Create Ambari uri with /api/v1/ suffix (+ /api/v1/clusters/<cluster> suffix is useCluster is enabled)
+// GetAmbariUri creates the Ambari uri with /api/v1/ suffix (+ /api/v1/clusters/<cluster> suffix is useCluster is enabled)
 func (a AmbariRegistry) GetAmbariUri(uriSuffix string, useCluster bool) string {
 	if useCluster {
 		return fmt.Sprintf("%s://%s:%v/api/v1/clusters/%s/%s", a.protocol, a.hostname, a.port, a.cluster, uriSuffix)
@@ -57,7 +57,7 @@ func (a AmbariRegistry) GetAmbariUri(uriSuffix string, useCluster bool) string {
 	return fmt.Sprintf("%s://%s:%v/api/v1/%s", a.protocol, a.hostname, a.port, uriSuffix)
 }
 
-// Create Http client for Ambari
+// GetHttpClient create HTTP client instance for Ambari
 func GetHttpClient() *http.Client {
 	httpClient := &http.Client{
 		Transport: &http.Transport{
@@ -72,7 +72,7 @@ func GetHttpClient() *http.Client {
 	return httpClient
 }
 
-// Get "items" from Ambari response
+// ProcessAmbariItems get "items" from Ambari response
 func ProcessAmbariItems(request *http.Request) AmbariItems {
 	client := GetHttpClient()
 	response, err := client.Do(request)
