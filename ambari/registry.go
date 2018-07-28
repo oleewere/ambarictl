@@ -70,24 +70,32 @@ func ListAmbariRegistryEntries() []AmbariRegistry {
 	return ambariRegistries
 }
 
-// RegisterNewAmbariEntry create new ambari registry entry in ambari-manager database
-func RegisterNewAmbariEntry(id string, hostname string, port int, protocol string, username string, password string, cluster string) {
+// GetAmbariEntryId get ambari entry id if the id exists
+func GetAmbariEntryId(id string) string {
 	db, err := getDb()
 	checkErr(err)
 	defer db.Close()
 	rows, err := db.Query("SELECT id FROM ambari_registry WHERE id = '" + id + "'")
 	checkErr(err)
-	var checkId string
+	var ambariEntryId string
 	for rows.Next() {
-		rows.Scan(&checkId)
+		rows.Scan(&ambariEntryId)
 	}
 	rows.Close()
+	return ambariEntryId
+}
+
+// RegisterNewAmbariEntry create new ambari registry entry in ambari-manager database
+func RegisterNewAmbariEntry(id string, hostname string, port int, protocol string, username string, password string, cluster string) {
+	checkId := GetAmbariEntryId(id)
 	if len(checkId) > 0 {
 		alreadyExistMsg := fmt.Sprintf("Registry with id '%s' is already defined as a registry entry", checkId)
 		fmt.Println(alreadyExistMsg)
 		os.Exit(1)
 	}
-
+	db, err := getDb()
+	checkErr(err)
+	defer db.Close()
 	statement, _ := db.Prepare("INSERT INTO ambari_registry (id, hostname, port, protocol, username, password, cluster, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
 	_, insertErr := statement.Exec(id, hostname, strconv.Itoa(port), protocol, username, password, cluster, strconv.Itoa(1))
 	checkErr(insertErr)

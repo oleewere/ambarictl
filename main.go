@@ -21,6 +21,7 @@ import (
 	"github.com/urfave/cli"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Version that will be generated during the build as a constant
@@ -50,6 +51,7 @@ func main() {
 		Usage: "Initialize Ambari context (db)",
 		Action: func(c *cli.Context) error {
 			ambari.CreateAmbariRegistryDb()
+			fmt.Println("Ambari registry DB has been initialized.")
 			return nil
 		},
 	}
@@ -151,16 +153,39 @@ func main() {
 		Name:  "register",
 		Usage: "Register new Ambari entry",
 		Action: func(c *cli.Context) error {
-			ambari.RegisterNewAmbariEntry("vagrant", "c7401.ambari.apache.org", 8080, "http",
-				"admin", "admin", "cl1")
+			name := ambari.GetStringFlag(c.String("name"), "", "Enter ambari registry name")
+			ambariEntryId := ambari.GetAmbariEntryId(name)
+			if len(ambariEntryId) > 0 {
+				fmt.Println("Ambari registry entry already exists with id " + name)
+				os.Exit(1)
+			}
+			host := ambari.GetStringFlag(c.String("host"), "", "Enter ambari host name")
+			portStr := ambari.GetStringFlag(c.String("port"), "8080", "Enter ambari port")
+			port, err := strconv.Atoi(portStr)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			protocol := strings.ToLower(ambari.GetStringFlag(c.String("protocol"), "http", "Enter ambari protocol"))
+			if protocol != "http" && protocol != "https" {
+				fmt.Println("Use 'http' or 'https' value for protocol option")
+				os.Exit(1)
+			}
+			username := strings.ToLower(ambari.GetStringFlag(c.String("username"), "admin", "Enter ambari user"))
+			password := ambari.GetPassword(c.String("password"), "Enter ambari user password")
+			cluster := strings.ToLower(ambari.GetStringFlag(c.String("cluster"), "", "Enter ambari cluster"))
+
+			ambari.RegisterNewAmbariEntry(name, host, port, protocol,
+				username, password, cluster)
+			fmt.Println("New Ambari registry entry created: " + name)
 			return nil
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{Name: "name", Usage: "Name of the Ambari registry entry"},
 			cli.StringFlag{Name: "host", Usage: "Hostname of the Ambari Server"},
-			cli.IntFlag{Name: "port", Usage: "Port for Ambari Server"},
-			cli.BoolFlag{Name: "ssl", Usage: "Enabled TLS/SSL for Ambari"},
-			cli.StringFlag{Name: "username", Usage: "Ambari user"},
+			cli.StringFlag{Name: "port", Usage: "Port for Ambari Server"},
+			cli.StringFlag{Name: "protocol", Usage: "Protocol for Ambar REST API: http/https"},
+			cli.StringFlag{Name: "username", Usage: "Ambari user name"},
 			cli.StringFlag{Name: "password", Usage: "Password for Ambari user"},
 			cli.StringFlag{Name: "cluster", Usage: "Cluster name"},
 		},
@@ -171,6 +196,7 @@ func main() {
 		Usage: "Drop all Ambari registry records",
 		Action: func(c *cli.Context) error {
 			ambari.DropAmbariRegistryRecords()
+			fmt.Println("Ambari registry entries dropped.")
 			return nil
 		},
 	}
