@@ -46,7 +46,7 @@ func GetStringFlag(flagValue string, defaultValue string, text string) string {
 	return flagValue
 }
 
-// GetStringFlag trying to read a password flag value, if it does not exists ask an input from the user
+// GetPassword trying to read a password flag value, if it does not exists ask an input from the user
 func GetPassword(flagValue string, text string) string {
 	if len(flagValue) == 0 {
 		fmt.Print(text + ": ")
