@@ -35,7 +35,7 @@ func main() {
 	app.Name = "ambari-manager"
 	app.Usage = "CLI tool for handle Ambari clusters"
 	app.EnableBashCompletion = true
-	app.UsageText = "ambari-manager command [command options] [arguments...]"
+	app.UsageText = "ambarictl command [command options] [arguments...]"
 	if len(Version) > 0 {
 		app.Version = Version
 	} else {
