@@ -143,7 +143,7 @@ func getDbFile() string {
 		panic(err)
 	}
 	home := usr.HomeDir
-	ambariManagerFolder := path.Join(home, ".ambari-manager")
+	ambariManagerFolder := path.Join(home, ".ambarictl")
 	if _, err := os.Stat(ambariManagerFolder); os.IsNotExist(err) {
 		os.Mkdir(ambariManagerFolder, os.ModePerm)
 	}
