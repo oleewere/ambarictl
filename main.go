@@ -16,7 +16,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/oleewere/ambari-manager/ambari"
+	"github.com/oleewere/ambarictl/ambari"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli"
 	"os"
@@ -32,7 +32,7 @@ var GitRevString string
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "ambari-manager"
+	app.Name = "ambarictl"
 	app.Usage = "CLI tool for handle Ambari clusters"
 	app.EnableBashCompletion = true
 	app.UsageText = "ambarictl command [command options] [arguments...]"
