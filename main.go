@@ -48,13 +48,14 @@ func main() {
 	app.Commands = []cli.Command{}
 	initCommand := cli.Command{
 		Name:  "init",
-		Usage: "Initialize Ambari context (db)",
+		Usage: "Initialize Ambari registry database",
 		Action: func(c *cli.Context) error {
 			ambari.CreateAmbariRegistryDb()
 			fmt.Println("Ambari registry DB has been initialized.")
 			return nil
 		},
 	}
+
 	listCommand := cli.Command{
 		Name:  "list",
 		Usage: "Print all registered Ambari registries",
@@ -120,7 +121,7 @@ func main() {
 	}
 
 	listHostComponentsCommand := cli.Command{
-		Name:  "host-components",
+		Name:  "hcomponents",
 		Usage: "Print all installed Ambari host components by component name",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
@@ -149,8 +150,8 @@ func main() {
 		},
 	}
 
-	registerCommand := cli.Command{
-		Name:  "register",
+	createCommand := cli.Command{
+		Name:  "create",
 		Usage: "Register new Ambari entry",
 		Action: func(c *cli.Context) error {
 			name := ambari.GetStringFlag(c.String("name"), "", "Enter ambari registry name")
@@ -175,6 +176,7 @@ func main() {
 			password := ambari.GetPassword(c.String("password"), "Enter ambari user password")
 			cluster := strings.ToLower(ambari.GetStringFlag(c.String("cluster"), "", "Enter ambari cluster"))
 
+			ambari.DeactiveAllAmbariRegistry()
 			ambari.RegisterNewAmbariEntry(name, host, port, protocol,
 				username, password, cluster)
 			fmt.Println("New Ambari registry entry created: " + name)
@@ -188,6 +190,53 @@ func main() {
 			cli.StringFlag{Name: "username", Usage: "Ambari user name"},
 			cli.StringFlag{Name: "password", Usage: "Password for Ambari user"},
 			cli.StringFlag{Name: "cluster", Usage: "Cluster name"},
+		},
+	}
+
+	deleteCommand := cli.Command{
+		Name:  "delete",
+		Usage: "De-register an existing Ambari entry",
+		Action: func(c *cli.Context) error {
+			if len(c.Args()) == 0 {
+				fmt.Println("Provide a registry name argument for use command. e.g.: delete vagrant")
+				os.Exit(1)
+			}
+			name := c.Args().First()
+			ambariEntryId := ambari.GetAmbariEntryId(name)
+			if len(ambariEntryId) == 0 {
+				fmt.Println("Ambari registry entry does not exist with id " + name)
+				os.Exit(1)
+			}
+			ambari.DeRegisterAmbariEntry(name)
+			fmt.Println("Ambari registry de-registered with id: " + name)
+			return nil
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "name", Usage: "Name of the Ambari registry entry"},
+		},
+	}
+
+	useCommand := cli.Command{
+		Name:  "use",
+		Usage: "Use selected Ambari registry",
+		Action: func(c *cli.Context) error {
+			if len(c.Args()) == 0 {
+				fmt.Println("Provide a registry name argument for use command. e.g.: use vagrant")
+				os.Exit(1)
+			}
+			name := c.Args().First()
+			ambariEntryId := ambari.GetAmbariEntryId(name)
+			if len(ambariEntryId) == 0 {
+				fmt.Println("Ambari registry entry does not exist with id " + name)
+				os.Exit(1)
+			}
+			ambari.DeactiveAllAmbariRegistry()
+			ambari.ActiveAmbariRegistry(name)
+			fmt.Println("Ambari registry selected with id: " + name)
+			return nil
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "name", Usage: "Name of the Ambari registry entry"},
 		},
 	}
 
@@ -217,13 +266,15 @@ func main() {
 	}
 
 	app.Commands = append(app.Commands, initCommand)
+	app.Commands = append(app.Commands, createCommand)
+	app.Commands = append(app.Commands, deleteCommand)
+	app.Commands = append(app.Commands, useCommand)
+	app.Commands = append(app.Commands, showCommand)
 	app.Commands = append(app.Commands, listCommand)
 	app.Commands = append(app.Commands, listAgentsCommand)
 	app.Commands = append(app.Commands, listServicesCommand)
 	app.Commands = append(app.Commands, listComponentsCommand)
 	app.Commands = append(app.Commands, listHostComponentsCommand)
-	app.Commands = append(app.Commands, showCommand)
-	app.Commands = append(app.Commands, registerCommand)
 	app.Commands = append(app.Commands, clearCommand)
 
 	err := app.Run(os.Args)

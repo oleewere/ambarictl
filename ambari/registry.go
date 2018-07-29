@@ -101,6 +101,16 @@ func RegisterNewAmbariEntry(id string, hostname string, port int, protocol strin
 	checkErr(insertErr)
 }
 
+// DeRegisterAmbariEntry remove an ambari registry by id
+func DeRegisterAmbariEntry(id string) {
+	db, err := getDb()
+	checkErr(err)
+	defer db.Close()
+	statement, _ := db.Prepare("DELETE ambari_registry WHERE id = ?")
+	_, deleteErr := statement.Exec(id)
+	checkErr(deleteErr)
+}
+
 // GetActiveAmbari get the active ambari registry from ambari-manager database (should be only one)
 func GetActiveAmbari() AmbariRegistry {
 	db, err := sql.Open("sqlite3", getDbFile())
@@ -121,6 +131,26 @@ func GetActiveAmbari() AmbariRegistry {
 	rows.Close()
 
 	return AmbariRegistry{Name: id, Hostname: hostname, Port: port, Protocol: protocol, Username: username, Password: password, Cluster: cluster, Active: 1}
+}
+
+// ActiveAmbariRegistry turn on active status on selected ambari registry
+func ActiveAmbariRegistry(id string) {
+	db, err := sql.Open("sqlite3", getDbFile())
+	checkErr(err)
+	defer db.Close()
+	statement, _ := db.Prepare("UPDATE ambari_registry SET active='1' WHERE id = ?")
+	_, updateErr := statement.Exec(id)
+	checkErr(updateErr)
+}
+
+// DeactiveAllAmbariRegistry turn off active status on all ambari registries
+func DeactiveAllAmbariRegistry() {
+	db, err := sql.Open("sqlite3", getDbFile())
+	checkErr(err)
+	defer db.Close()
+	statement, _ := db.Prepare("UPDATE ambari_registry SET active='0' WHERE active = '1'")
+	_, updateErr := statement.Exec()
+	checkErr(updateErr)
 }
 
 func getDb() (*sql.DB, error) {
