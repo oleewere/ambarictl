@@ -265,6 +265,16 @@ func main() {
 		},
 	}
 
+	configsCommand := cli.Command{
+		Name:  "configs",
+		Usage: "Operations with Ambari service configurations",
+		Action: func(c *cli.Context) error {
+			ambariRegistry := ambari.GetActiveAmbari()
+			ambariRegistry.ListServiceConfigVersions()
+			return nil
+		},
+	}
+
 	app.Commands = append(app.Commands, initCommand)
 	app.Commands = append(app.Commands, createCommand)
 	app.Commands = append(app.Commands, deleteCommand)
@@ -275,6 +285,7 @@ func main() {
 	app.Commands = append(app.Commands, listServicesCommand)
 	app.Commands = append(app.Commands, listComponentsCommand)
 	app.Commands = append(app.Commands, listHostComponentsCommand)
+	app.Commands = append(app.Commands, configsCommand)
 	app.Commands = append(app.Commands, clearCommand)
 
 	err := app.Run(os.Args)

@@ -48,3 +48,7 @@ func (a AmbariRegistry) ListHostComponents(param string, useHost bool) []HostCom
 	ambariItems := ProcessAmbariItems(request)
 	return ambariItems.ConvertResponse().HostComponents
 }
+
+func  (a AmbariRegistry) ListServiceConfigVersions() {
+	// TODO
+}
