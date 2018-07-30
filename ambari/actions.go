@@ -50,6 +50,6 @@ func (a AmbariRegistry) ListHostComponents(param string, useHost bool) []HostCom
 }
 
 // ListServiceConfigVersions gather service configuration details
-func  (a AmbariRegistry) ListServiceConfigVersions() {
+func (a AmbariRegistry) ListServiceConfigVersions() {
 	// TODO
 }
