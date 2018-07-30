@@ -152,7 +152,7 @@ func main() {
 
 	createCommand := cli.Command{
 		Name:  "create",
-		Usage: "Register new Ambari entry",
+		Usage: "Register new Ambari registry entry",
 		Action: func(c *cli.Context) error {
 			name := ambari.GetStringFlag(c.String("name"), "", "Enter ambari registry name")
 			ambariEntryId := ambari.GetAmbariEntryId(name)
@@ -195,7 +195,7 @@ func main() {
 
 	deleteCommand := cli.Command{
 		Name:  "delete",
-		Usage: "De-register an existing Ambari entry",
+		Usage: "De-register an existing Ambari registry entry",
 		Action: func(c *cli.Context) error {
 			if len(c.Args()) == 0 {
 				fmt.Println("Provide a registry name argument for use command. e.g.: delete vagrant")
