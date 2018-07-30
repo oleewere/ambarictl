@@ -133,7 +133,7 @@ func main() {
 				param = c.String("host")
 				useHost = true
 			} else {
-				fmt.Println("Flag '--component' or `--`with a value is required for 'host-components' action!")
+				fmt.Println("Flag '--component' or `--host`with a value is required for 'host-components' action!")
 				os.Exit(1)
 			}
 			components := ambariRegistry.ListHostComponents(param, useHost)
