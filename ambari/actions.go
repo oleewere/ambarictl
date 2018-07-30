@@ -50,6 +50,8 @@ func (a AmbariRegistry) ListHostComponents(param string, useHost bool) []HostCom
 }
 
 // ListServiceConfigVersions gather service configuration details
-func (a AmbariRegistry) ListServiceConfigVersions() {
-	// TODO
+func (a AmbariRegistry) ListServiceConfigVersions() []ServiceConfig {
+	request := a.CreateGetRequest("configurations/service_config_versions?fields=service_name&is_current=true", true)
+	ambariItems := ProcessAmbariItems(request)
+	return ambariItems.ConvertResponse().ServiceConfigs
 }

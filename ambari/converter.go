@@ -21,11 +21,13 @@ func (a AmbariItems) ConvertResponse() Response {
 	services := []Service{}
 	components := []Component{}
 	hostComponents := []HostComponent{}
+	serviceConfigs := []ServiceConfig{}
 	for _, item := range a.Items {
 		hosts = createHostsType(item, hosts)
 		services = createServicesType(item, services)
 		components = createComponentsType(item, components)
 		hostComponents = createHostComponentsType(item, hostComponents)
+		serviceConfigs = createServiceConfigsType(item, serviceConfigs)
 	}
 	if len(hosts) > 0 {
 		response.Hosts = hosts
@@ -39,7 +41,30 @@ func (a AmbariItems) ConvertResponse() Response {
 	if len(hostComponents) > 0 {
 		response.HostComponents = hostComponents
 	}
+	if len(serviceConfigs) > 0 {
+		response.ServiceConfigs = serviceConfigs
+	}
 	return response
+}
+func createServiceConfigsType(item Item, configs []ServiceConfig) []ServiceConfig {
+	if configsVal, ok := item["configurations"]; ok {
+		serviceConfI := configsVal.([]interface{})
+		for _, configVal := range serviceConfI {
+			serviceConfig := ServiceConfig{}
+			confI := configVal.(map[string]interface{})
+			if tag, ok := confI["tag"]; ok {
+				serviceConfig.ServiceConfigTag = tag.(string)
+			}
+			if serviceConfigType, ok := confI["type"]; ok {
+				serviceConfig.ServiceConfigType = serviceConfigType.(string)
+			}
+			if version, ok := confI["version"]; ok {
+				serviceConfig.ServiceConfigVersion = version.(float64)
+			}
+			configs = append(configs, serviceConfig)
+		}
+	}
+	return configs
 }
 
 func createHostsType(item Item, hosts []Host) []Host {

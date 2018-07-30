@@ -270,7 +270,12 @@ func main() {
 		Usage: "Operations with Ambari service configurations",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
-			ambariRegistry.ListServiceConfigVersions()
+			configs := ambariRegistry.ListServiceConfigVersions()
+			var tableData [][]string
+			for _, config := range configs {
+				tableData = append(tableData, []string{config.ServiceConfigType, strconv.FormatFloat(config.ServiceConfigVersion, 'f', 0, 64), config.ServiceConfigTag})
+			}
+			printTable("SERVICE_CONFIGS:", []string{"TYPE", "VERSION", "TAG"}, tableData)
 			return nil
 		},
 	}

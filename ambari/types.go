@@ -62,10 +62,22 @@ type HostComponent struct {
 	HostComponntHost   string `json:"host_name,omitempty"`
 }
 
+// ServiceConfig represents service specific configurations
+type ServiceConfig struct {
+	ServiceConfigType    string     `json:"type,omitempty"`
+	ServiceConfigTag     string     `json:"tag,omitempty"`
+	ServiceConfigVersion float64    `json:"tag,omitempty"`
+	Properties           Properties `json:"properties,omitempty"`
+}
+
+// Properties represents configuration properties (key/value pairs)
+type Properties map[string]interface{}
+
 // Response common type which wraps all of the possible response entry types
 type Response struct {
 	Hosts          []Host
 	Services       []Service
 	Components     []Component
 	HostComponents []HostComponent
+	ServiceConfigs []ServiceConfig
 }
