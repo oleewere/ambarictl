@@ -22,6 +22,8 @@ func (a AmbariItems) ConvertResponse() Response {
 	components := []Component{}
 	hostComponents := []HostComponent{}
 	serviceConfigs := []ServiceConfig{}
+	clusterInfo := Cluster{}
+	clusterInfo = a.Cluster
 	for _, item := range a.Items {
 		hosts = createHostsType(item, hosts)
 		services = createServicesType(item, services)
@@ -44,8 +46,12 @@ func (a AmbariItems) ConvertResponse() Response {
 	if len(serviceConfigs) > 0 {
 		response.ServiceConfigs = serviceConfigs
 	}
+	if len(clusterInfo.ClusterName) > 0 {
+		response.Cluster = clusterInfo
+	}
 	return response
 }
+
 func createServiceConfigsType(item Item, configs []ServiceConfig) []ServiceConfig {
 	if configsVal, ok := item["configurations"]; ok {
 		serviceConfI := configsVal.([]interface{})

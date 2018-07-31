@@ -268,14 +268,35 @@ func main() {
 	configsCommand := cli.Command{
 		Name:  "configs",
 		Usage: "Operations with Ambari service configurations",
+		Subcommands: []cli.Command{
+			{
+				Name:  "versions",
+				Usage: "Print all service config types with versions",
+				Action: func(c *cli.Context) error {
+					ambariRegistry := ambari.GetActiveAmbari()
+					configs := ambariRegistry.ListServiceConfigVersions()
+					var tableData [][]string
+					for _, config := range configs {
+						tableData = append(tableData, []string{config.ServiceConfigType, strconv.FormatFloat(config.ServiceConfigVersion, 'f', -1, 64), config.ServiceConfigTag})
+					}
+					printTable("SERVICE_CONFIGS:", []string{"TYPE", "VERSION", "TAG"}, tableData)
+					return nil
+				},
+			},
+		},
+	}
+
+	clusterCommand := cli.Command{
+		Name:  "cluster",
+		Usage: "Print Ambari managed cluster details",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
-			configs := ambariRegistry.ListServiceConfigVersions()
+			clusterInfo := ambariRegistry.GetClusterInfo()
 			var tableData [][]string
-			for _, config := range configs {
-				tableData = append(tableData, []string{config.ServiceConfigType, strconv.FormatFloat(config.ServiceConfigVersion, 'f', 0, 64), config.ServiceConfigTag})
+			if len(ambariRegistry.Name) > 0 {
+				tableData = append(tableData, []string{clusterInfo.ClusterName, clusterInfo.ClusterVersion, clusterInfo.ClusterSecurityType, strconv.FormatFloat(clusterInfo.ClusterTotalHosts, 'f', -1, 64)})
 			}
-			printTable("SERVICE_CONFIGS:", []string{"TYPE", "VERSION", "TAG"}, tableData)
+			printTable("CLUSTER INFO:", []string{"Name", "VERSION", "SECURITY", "TOTAL HOSTS"}, tableData)
 			return nil
 		},
 	}
@@ -291,6 +312,7 @@ func main() {
 	app.Commands = append(app.Commands, listComponentsCommand)
 	app.Commands = append(app.Commands, listHostComponentsCommand)
 	app.Commands = append(app.Commands, configsCommand)
+	app.Commands = append(app.Commands, clusterCommand)
 	app.Commands = append(app.Commands, clearCommand)
 
 	err := app.Run(os.Args)

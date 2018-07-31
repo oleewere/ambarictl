@@ -30,6 +30,7 @@ type AmbariRegistry struct {
 type AmbariItems struct {
 	Href  string `json:"href"`
 	Items []Item `json:"items"`
+	Cluster Cluster `json:"Clusters,omitempty"`
 }
 
 // Item dynamic map - cast contents to specific types
@@ -70,11 +71,20 @@ type ServiceConfig struct {
 	Properties           Properties `json:"properties,omitempty"`
 }
 
+// Cluster holds installed ambari cluster details
+type Cluster struct {
+	ClusterName         string  `json:"cluster_name,omitempty"`
+	ClusterVersion      string  `json:"version,omitempty"`
+	ClusterTotalHosts   float64 `json:"total_hosts,omitempty"`
+	ClusterSecurityType string  `json:"security_type,omitempty"`
+}
+
 // Properties represents configuration properties (key/value pairs)
 type Properties map[string]interface{}
 
 // Response common type which wraps all of the possible response entry types
 type Response struct {
+	Cluster        Cluster
 	Hosts          []Host
 	Services       []Service
 	Components     []Component

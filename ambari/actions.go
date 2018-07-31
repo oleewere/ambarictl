@@ -55,3 +55,10 @@ func (a AmbariRegistry) ListServiceConfigVersions() []ServiceConfig {
 	ambariItems := ProcessAmbariItems(request)
 	return ambariItems.ConvertResponse().ServiceConfigs
 }
+
+// GetClusterInfo obtain cluster detauls for ambari managed cluster
+func (a AmbariRegistry) GetClusterInfo() Cluster {
+	request := a.CreateGetRequest("?fields=Clusters/cluster_name,Clusters/version,Clusters/total_hosts,Clusters/security_type", true)
+	ambariItems := ProcessAmbariItems(request)
+	return ambariItems.ConvertResponse().Cluster
+}
