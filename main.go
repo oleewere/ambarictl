@@ -15,16 +15,16 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/oleewere/ambarictl/ambari"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
-	"bytes"
-	"io/ioutil"
 )
 
 // Version that will be generated during the build as a constant
@@ -43,9 +43,6 @@ func main() {
 		app.Version = Version
 	} else {
 		app.Version = "0.1.0"
-	}
-	app.Flags = []cli.Flag{
-		cli.BoolFlag{Name: "verbose"},
 	}
 
 	app.Commands = []cli.Command{}
@@ -88,7 +85,7 @@ func main() {
 			for _, host := range hosts {
 				tableData = append(tableData, []string{host.PublicHostname, host.IP, host.OSType, host.OSArch, strconv.FormatBool(host.UnlimitedJCE), host.HostState})
 			}
-			printTable("HOSTS:", []string{"PUBLIC HOSTNAME", "IP", "OS TYPE", "OS ARCH", "UNLIMETED_JCE","STATE"}, tableData)
+			printTable("HOSTS:", []string{"PUBLIC HOSTNAME", "IP", "OS TYPE", "OS ARCH", "UNLIMETED_JCE", "STATE"}, tableData)
 			return nil
 		},
 	}
@@ -312,7 +309,7 @@ func main() {
 
 	clusterCommand := cli.Command{
 		Name:  "cluster",
-		Usage: "Print Ambari managed cluster details",
+		Usage: "print Ambari managed cluster details",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			clusterInfo := ambariRegistry.GetClusterInfo()
@@ -367,7 +364,7 @@ func printTable(title string, headers []string, data [][]string) {
 func printJson(b []byte) {
 	var out bytes.Buffer
 	err := json.Indent(&out, b, "", "    ")
-	if (err != nil) {
+	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

@@ -28,8 +28,8 @@ type AmbariRegistry struct {
 
 // AmbariItems global items from Ambari rest API response
 type AmbariItems struct {
-	Href  string `json:"href"`
-	Items []Item `json:"items"`
+	Href    string  `json:"href"`
+	Items   []Item  `json:"items"`
 	Cluster Cluster `json:"Clusters,omitempty"`
 }
 
