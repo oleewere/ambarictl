@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 	"bytes"
+	"io/ioutil"
 )
 
 // Version that will be generated during the build as a constant
@@ -291,6 +292,14 @@ func main() {
 				Action: func(c *cli.Context) error {
 					ambariRegistry := ambari.GetActiveAmbari()
 					blueprint := ambariRegistry.ExportBlueprint()
+					if len(c.String("file")) > 0 {
+						err := ioutil.WriteFile(c.String("file"), blueprint, 0644)
+						if err != nil {
+							fmt.Println(err)
+							os.Exit(1)
+						}
+						return nil
+					}
 					printJson(blueprint)
 					return nil
 				},
