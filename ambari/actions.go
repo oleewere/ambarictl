@@ -62,3 +62,9 @@ func (a AmbariRegistry) GetClusterInfo() Cluster {
 	ambariItems := ProcessAmbariItems(request)
 	return ambariItems.ConvertResponse().Cluster
 }
+
+// ExportBlueprint generate re-usable JSON from the cluster
+func (a AmbariRegistry) ExportBlueprint() []byte {
+	request := a.CreateGetRequest("?format=blueprint", true)
+	return ProcessRequest(request)
+}

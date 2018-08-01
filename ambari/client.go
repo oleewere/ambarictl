@@ -74,6 +74,18 @@ func GetHttpClient() *http.Client {
 
 // ProcessAmbariItems get "items" from Ambari response
 func ProcessAmbariItems(request *http.Request) AmbariItems {
+	bodyBytes := ProcessRequest(request)
+	var ambariItems AmbariItems
+	err := json.Unmarshal(bodyBytes, &ambariItems)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return ambariItems
+}
+
+// ProcessRequest get a simple response from a REST call
+func ProcessRequest(request *http.Request) []byte {
 	client := GetHttpClient()
 	response, err := client.Do(request)
 	if err != nil {
@@ -82,11 +94,9 @@ func ProcessAmbariItems(request *http.Request) AmbariItems {
 	}
 	defer response.Body.Close()
 	bodyBytes, err := ioutil.ReadAll(response.Body)
-	var ambariItems AmbariItems
-	jsonErr := json.Unmarshal(bodyBytes, &ambariItems)
-	if jsonErr != nil {
+	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	return ambariItems
+	return bodyBytes
 }

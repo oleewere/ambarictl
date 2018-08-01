@@ -15,6 +15,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/oleewere/ambarictl/ambari"
 	"github.com/olekukonko/tablewriter"
@@ -22,6 +23,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"bytes"
 )
 
 // Version that will be generated during the build as a constant
@@ -48,7 +50,7 @@ func main() {
 	app.Commands = []cli.Command{}
 	initCommand := cli.Command{
 		Name:  "init",
-		Usage: "Initialize Ambari registry database",
+		Usage: "initialize Ambari registry database",
 		Action: func(c *cli.Context) error {
 			ambari.CreateAmbariRegistryDb()
 			fmt.Println("Ambari registry DB has been initialized.")
@@ -58,7 +60,7 @@ func main() {
 
 	listCommand := cli.Command{
 		Name:  "list",
-		Usage: "Print all registered Ambari registries",
+		Usage: "print all registered Ambari registries",
 		Action: func(c *cli.Context) error {
 			ambariServerEntries := ambari.ListAmbariRegistryEntries()
 			var tableData [][]string
@@ -77,7 +79,7 @@ func main() {
 
 	listAgentsCommand := cli.Command{
 		Name:  "hosts",
-		Usage: "Print all registered Ambari registries",
+		Usage: "print all registered Ambari registries",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			hosts := ambariRegistry.ListAgents()
@@ -92,7 +94,7 @@ func main() {
 
 	listServicesCommand := cli.Command{
 		Name:  "services",
-		Usage: "Print all installed Ambari services",
+		Usage: "print all installed Ambari services",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			services := ambariRegistry.ListServices()
@@ -107,7 +109,7 @@ func main() {
 
 	listComponentsCommand := cli.Command{
 		Name:  "components",
-		Usage: "Print all installed Ambari components",
+		Usage: "print all installed Ambari components",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			components := ambariRegistry.ListComponents()
@@ -122,7 +124,7 @@ func main() {
 
 	listHostComponentsCommand := cli.Command{
 		Name:  "hcomponents",
-		Usage: "Print all installed Ambari host components by component name",
+		Usage: "print all installed Ambari host components by component name",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			var param string
@@ -145,14 +147,14 @@ func main() {
 			return nil
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{Name: "component", Usage: "Component filter for host components"},
-			cli.StringFlag{Name: "host", Usage: "Host name filter for host components"},
+			cli.StringFlag{Name: "component", Usage: "component filter for host components"},
+			cli.StringFlag{Name: "host", Usage: "host name filter for host components"},
 		},
 	}
 
 	createCommand := cli.Command{
 		Name:  "create",
-		Usage: "Register new Ambari registry entry",
+		Usage: "register new Ambari registry entry",
 		Action: func(c *cli.Context) error {
 			name := ambari.GetStringFlag(c.String("name"), "", "Enter ambari registry name")
 			ambariEntryId := ambari.GetAmbariEntryId(name)
@@ -183,19 +185,19 @@ func main() {
 			return nil
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{Name: "name", Usage: "Name of the Ambari registry entry"},
-			cli.StringFlag{Name: "host", Usage: "Hostname of the Ambari Server"},
-			cli.StringFlag{Name: "port", Usage: "Port for Ambari Server"},
-			cli.StringFlag{Name: "protocol", Usage: "Protocol for Ambar REST API: http/https"},
-			cli.StringFlag{Name: "username", Usage: "Ambari user name"},
-			cli.StringFlag{Name: "password", Usage: "Password for Ambari user"},
-			cli.StringFlag{Name: "cluster", Usage: "Cluster name"},
+			cli.StringFlag{Name: "name", Usage: "name of the Ambari registry entry"},
+			cli.StringFlag{Name: "host", Usage: "hostname of the Ambari Server"},
+			cli.StringFlag{Name: "port", Usage: "port for Ambari Server"},
+			cli.StringFlag{Name: "protocol", Usage: "protocol for Ambar REST API: http/https"},
+			cli.StringFlag{Name: "username", Usage: "user name for Ambari server"},
+			cli.StringFlag{Name: "password", Usage: "password for Ambari user"},
+			cli.StringFlag{Name: "cluster", Usage: "cluster name"},
 		},
 	}
 
 	deleteCommand := cli.Command{
 		Name:  "delete",
-		Usage: "De-register an existing Ambari registry entry",
+		Usage: "de-register an existing Ambari registry entry",
 		Action: func(c *cli.Context) error {
 			if len(c.Args()) == 0 {
 				fmt.Println("Provide a registry name argument for use command. e.g.: delete vagrant")
@@ -212,13 +214,13 @@ func main() {
 			return nil
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{Name: "name", Usage: "Name of the Ambari registry entry"},
+			cli.StringFlag{Name: "name", Usage: "name of the Ambari registry entry"},
 		},
 	}
 
 	useCommand := cli.Command{
 		Name:  "use",
-		Usage: "Use selected Ambari registry",
+		Usage: "use selected Ambari registry",
 		Action: func(c *cli.Context) error {
 			if len(c.Args()) == 0 {
 				fmt.Println("Provide a registry name argument for use command. e.g.: use vagrant")
@@ -236,13 +238,13 @@ func main() {
 			return nil
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{Name: "name", Usage: "Name of the Ambari registry entry"},
+			cli.StringFlag{Name: "name", Usage: "name of the Ambari registry entry"},
 		},
 	}
 
 	clearCommand := cli.Command{
 		Name:  "clear",
-		Usage: "Drop all Ambari registry records",
+		Usage: "drop all Ambari registry records",
 		Action: func(c *cli.Context) error {
 			ambari.DropAmbariRegistryRecords()
 			fmt.Println("Ambari registry entries dropped.")
@@ -252,7 +254,7 @@ func main() {
 
 	showCommand := cli.Command{
 		Name:  "show",
-		Usage: "Show active Ambari registry details",
+		Usage: "show active Ambari registry details",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			var tableData [][]string
@@ -267,11 +269,11 @@ func main() {
 
 	configsCommand := cli.Command{
 		Name:  "configs",
-		Usage: "Operations with Ambari service configurations",
+		Usage: "operations with Ambari service configurations",
 		Subcommands: []cli.Command{
 			{
 				Name:  "versions",
-				Usage: "Print all service config types with versions",
+				Usage: "print all service config types with versions",
 				Action: func(c *cli.Context) error {
 					ambariRegistry := ambari.GetActiveAmbari()
 					configs := ambariRegistry.ListServiceConfigVersions()
@@ -281,6 +283,19 @@ func main() {
 					}
 					printTable("SERVICE_CONFIGS:", []string{"TYPE", "VERSION", "TAG"}, tableData)
 					return nil
+				},
+			},
+			{
+				Name:  "export",
+				Usage: "export cluster configuration to a blueprint json",
+				Action: func(c *cli.Context) error {
+					ambariRegistry := ambari.GetActiveAmbari()
+					blueprint := ambariRegistry.ExportBlueprint()
+					printJson(blueprint)
+					return nil
+				},
+				Flags: []cli.Flag{
+					cli.StringFlag{Name: "file, f", Usage: "file output for the generated JSON"},
 				},
 			},
 		},
@@ -338,4 +353,14 @@ func printTable(title string, headers []string, data [][]string) {
 		fmt.Println()
 		fmt.Println("NO ENTRIES FOUND!")
 	}
+}
+
+func printJson(b []byte) {
+	var out bytes.Buffer
+	err := json.Indent(&out, b, "", "    ")
+	if (err != nil) {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Println(out.String())
 }
