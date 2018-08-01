@@ -77,7 +77,7 @@ func main() {
 
 	listAgentsCommand := cli.Command{
 		Name:  "hosts",
-		Usage: "print all registered Ambari registries",
+		Usage: "print all registered Ambari agent hosts",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			hosts := ambariRegistry.ListAgents()
