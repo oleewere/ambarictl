@@ -70,7 +70,7 @@ type HostComponent struct {
 type ServiceConfig struct {
 	ServiceConfigType    string     `json:"type,omitempty"`
 	ServiceConfigTag     string     `json:"tag,omitempty"`
-	ServiceConfigVersion float64    `json:"tag,omitempty"`
+	ServiceConfigVersion float64    `json:"version,omitempty"`
 	Properties           Properties `json:"properties,omitempty"`
 }
 
