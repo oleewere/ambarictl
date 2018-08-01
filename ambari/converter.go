@@ -89,6 +89,18 @@ func createHostsType(item Item, hosts []Host) []Host {
 		if hostState, ok := hostI["host_state"]; ok {
 			host.HostState = hostState.(string)
 		}
+		if osType, ok := hostI["os_type"]; ok {
+			host.OSType = osType.(string)
+		}
+		if osArch, ok := hostI["os_arch"]; ok {
+			host.OSArch = osArch.(string)
+		}
+		if lastAgentEnvVal, ok := hostI["last_agent_env"]; ok {
+			lastAgentEnv := lastAgentEnvVal.(map[string]interface{})
+			if jceVal, ok := lastAgentEnv["hasUnlimitedJcePolicy"]; ok {
+				host.UnlimitedJCE = jceVal.(bool)
+			}
+		}
 
 		hosts = append(hosts, host)
 	}

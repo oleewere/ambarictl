@@ -41,6 +41,9 @@ type Host struct {
 	HostName       string `json:"host_name,omitempty"`
 	IP             string `json:"ip,omitempty"`
 	PublicHostname string `json:"public_host_name,omitempty"`
+	OSType         string `json:"os_type,omitempty"`
+	OSArch         string `json:"os_arch,omitempty"`
+	UnlimitedJCE   bool   `json:"unlimited_jce,omitempty"`
 	HostState      string `json:"host_state,omitempty"`
 }
 

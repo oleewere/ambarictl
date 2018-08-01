@@ -85,9 +85,9 @@ func main() {
 			hosts := ambariRegistry.ListAgents()
 			var tableData [][]string
 			for _, host := range hosts {
-				tableData = append(tableData, []string{host.PublicHostname, host.IP, host.HostState})
+				tableData = append(tableData, []string{host.PublicHostname, host.IP, host.OSType, host.OSArch, strconv.FormatBool(host.UnlimitedJCE), host.HostState})
 			}
-			printTable("HOSTS:", []string{"PUBLIC HOSTNAME", "IP", "STATE"}, tableData)
+			printTable("HOSTS:", []string{"PUBLIC HOSTNAME", "IP", "OS TYPE", "OS ARCH", "UNLIMETED_JCE","STATE"}, tableData)
 			return nil
 		},
 	}

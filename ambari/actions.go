@@ -18,7 +18,7 @@ import "net/http"
 
 // ListAgents get all the registered hosts
 func (a AmbariRegistry) ListAgents() []Host {
-	request := a.CreateGetRequest("hosts?fields=Hosts/public_host_name,Hosts/ip,Hosts/host_state", false)
+	request := a.CreateGetRequest("hosts?fields=Hosts/public_host_name,Hosts/ip,Hosts/host_state,Hosts/os_type,Hosts/os_arch,Hosts/last_agent_env", false)
 	ambariItems := ProcessAmbariItems(request)
 	return ambariItems.ConvertResponse().Hosts
 }
