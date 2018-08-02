@@ -93,7 +93,7 @@ func ProcessRequest(request *http.Request) []byte {
 		os.Exit(1)
 	}
 	defer response.Body.Close()
-	if response.StatusCode != 200 {
+	if response.StatusCode >= 400 {
 		errorResponseMessage := fmt.Sprintf("Response status code: %v", response.StatusCode)
 		fmt.Println(errorResponseMessage)
 		bodyBytes, err := ioutil.ReadAll(response.Body)
