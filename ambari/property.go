@@ -36,19 +36,7 @@ func (a AmbariRegistry) GetMinimalBlueprint(blueprint map[string]interface{}, st
 				for propertyKey, propertyVal := range properties {
 					property := propertyVal.(string)
 					for _, stackDefaultProperty := range stackDefaultProperties {
-						if strings.Compare(stackDefaultProperty.Name, propertyKey) == 0 {
-							if (propertyKey == "content" && strings.Compare(strings.TrimSpace(stackDefaultProperty.Value), strings.TrimSpace(property)) != 0) ||
-								(propertyKey != "content" && strings.Compare(stackDefaultProperty.Value, property) != 0) {
-								if properties, ok := miniConfig[configType]; ok {
-									properties[propertyKey] = property
-									miniConfig[configType] = properties
-								} else {
-									properties := make(map[string]interface{})
-									properties[propertyKey] = property
-									miniConfig[configType] = properties
-								}
-							}
-						}
+						fillConfWithChangedProperties(stackDefaultProperty, propertyKey, property, miniConfig, configType)
 					}
 				}
 			}
@@ -66,6 +54,22 @@ func (a AmbariRegistry) GetMinimalBlueprint(blueprint map[string]interface{}, st
 		os.Exit(1)
 	}
 	return bodyBytes
+}
+
+func fillConfWithChangedProperties(stackDefaultProperty StackProperty, propertyKey string, property string, miniConfig map[string]map[string]interface{}, configType string) {
+	if strings.Compare(stackDefaultProperty.Name, propertyKey) == 0 {
+		if (propertyKey == "content" && strings.Compare(strings.TrimSpace(stackDefaultProperty.Value), strings.TrimSpace(property)) != 0) ||
+			(propertyKey != "content" && strings.Compare(stackDefaultProperty.Value, property) != 0) {
+			if properties, ok := miniConfig[configType]; ok {
+				properties[propertyKey] = property
+				miniConfig[configType] = properties
+			} else {
+				properties := make(map[string]interface{})
+				properties[propertyKey] = property
+				miniConfig[configType] = properties
+			}
+		}
+	}
 }
 
 func convertToConfigurationsFromMap(minimalConfig map[string]map[string]interface{}) []map[string]map[string]interface{} {
