@@ -299,7 +299,7 @@ func main() {
 							largeBlueprint := ambariRegistry.ExportBlueprintAsMap()
 							blueprint = ambariRegistry.GetMinimalBlueprint(largeBlueprint, stackDefaults)
 							if len(c.String("file")) > 0 {
-								err := ioutil.WriteFile(c.String("file"), blueprint, 0644)
+								err := ioutil.WriteFile(c.String("file"), formatJson(blueprint).Bytes(), 0644)
 								if err != nil {
 									fmt.Println(err)
 									os.Exit(1)
@@ -387,11 +387,15 @@ func printTable(title string, headers []string, data [][]string) {
 }
 
 func printJson(b []byte) {
+	fmt.Println(formatJson(b).String())
+}
+
+func formatJson(b []byte) *bytes.Buffer {
 	var out bytes.Buffer
 	err := json.Indent(&out, b, "", "    ")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println(out.String())
+	return &out
 }
