@@ -41,7 +41,7 @@ func (a AmbariRegistry) GetMinimalBlueprint(blueprint map[string]interface{}, st
 								(propertyKey != "content" && strings.Compare(stackDefaultProperty.Value, property) != 0) {
 								if properties, ok := miniConfig[configType]; ok {
 									properties[propertyKey] = property
-									miniConfig[configType]= properties
+									miniConfig[configType] = properties
 								} else {
 									properties := make(map[string]interface{})
 									properties[propertyKey] = property
