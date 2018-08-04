@@ -60,13 +60,18 @@ func fillConfWithChangedProperties(stackDefaultProperty StackProperty, propertyK
 	if strings.Compare(stackDefaultProperty.Name, propertyKey) == 0 {
 		if (propertyKey == "content" && strings.Compare(strings.TrimSpace(stackDefaultProperty.Value), strings.TrimSpace(property)) != 0) ||
 			(propertyKey != "content" && strings.Compare(stackDefaultProperty.Value, property) != 0) {
-			if properties, ok := miniConfig[configType]; ok {
+			if configTypeVal, ok := miniConfig[configType]; ok {
+				properties := configTypeVal["properties"].(map[string]interface{})
 				properties[propertyKey] = property
-				miniConfig[configType] = properties
+				miniConfig[configType]["properties"] = properties
 			} else {
 				properties := make(map[string]interface{})
+				propertyAttributes := make(map[string]interface{})
+				propertiesAndAttributes := make(map[string]interface{})
 				properties[propertyKey] = property
-				miniConfig[configType] = properties
+				propertiesAndAttributes["properties"] = properties
+				propertiesAndAttributes["properties_attributes"] = propertyAttributes
+				miniConfig[configType] = propertiesAndAttributes
 			}
 		}
 	}
