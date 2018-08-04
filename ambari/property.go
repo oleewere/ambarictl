@@ -39,18 +39,13 @@ func (a AmbariRegistry) GetMinimalBlueprint(blueprint map[string]interface{}, st
 						if strings.Compare(stackDefaultProperty.Name, propertyKey) == 0 {
 							if (propertyKey == "content" && strings.Compare(strings.TrimSpace(stackDefaultProperty.Value), strings.TrimSpace(property)) != 0) ||
 								(propertyKey != "content" && strings.Compare(stackDefaultProperty.Value, property) != 0) {
-								if configTypeVal, ok := miniConfig[configType]; ok {
-									properties := configTypeVal["properties"].(map[string]interface{})
+								if properties, ok := miniConfig[configType]; ok {
 									properties[propertyKey] = property
-									miniConfig[configType]["properties"] = properties
+									miniConfig[configType]= properties
 								} else {
 									properties := make(map[string]interface{})
-									propertyAttributes := make(map[string]interface{})
-									propertiesAndAttributes := make(map[string]interface{})
 									properties[propertyKey] = property
-									propertiesAndAttributes["properties"] = properties
-									propertiesAndAttributes["properties_attributes"] = propertyAttributes
-									miniConfig[configType] = propertiesAndAttributes
+									miniConfig[configType] = properties
 								}
 							}
 						}
@@ -61,6 +56,8 @@ func (a AmbariRegistry) GetMinimalBlueprint(blueprint map[string]interface{}, st
 		if len(miniConfig) > 0 {
 			configurations := convertToConfigurationsFromMap(miniConfig)
 			blueprint["configurations"] = configurations
+		} else {
+			blueprint["configurations"] = make([]interface{}, 0)
 		}
 	}
 	bodyBytes, err := json.Marshal(blueprint)
