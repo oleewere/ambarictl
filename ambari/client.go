@@ -84,6 +84,18 @@ func ProcessAmbariItems(request *http.Request) AmbariItems {
 	return ambariItems
 }
 
+// ProcessAsMap get map format response
+func ProcessAsMap(request *http.Request) map[string]interface{} {
+	bodyBytes := ProcessRequest(request)
+	var responseMap map[string]interface{}
+	err := json.Unmarshal(bodyBytes, &responseMap)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return responseMap
+}
+
 // ProcessRequest get a simple response from a REST call
 func ProcessRequest(request *http.Request) []byte {
 	client := GetHttpClient()

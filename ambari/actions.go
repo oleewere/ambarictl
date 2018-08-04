@@ -14,7 +14,10 @@
 
 package ambari
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 // ListAgents get all the registered hosts
 func (a AmbariRegistry) ListAgents() []Host {
@@ -67,4 +70,18 @@ func (a AmbariRegistry) GetClusterInfo() Cluster {
 func (a AmbariRegistry) ExportBlueprint() []byte {
 	request := a.CreateGetRequest("?format=blueprint", true)
 	return ProcessRequest(request)
+}
+
+// ExportBlueprintAsMap generate re-usable JSON map from the cluster
+func (a AmbariRegistry) ExportBlueprintAsMap() map[string]interface{} {
+	request := a.CreateGetRequest("?format=blueprint", true)
+	return ProcessAsMap(request)
+}
+
+// GetStackDefaultConfigs obtain default configs for specific (versioned) stack
+func (a AmbariRegistry) GetStackDefaultConfigs(stack string, version string) map[string]StackConfig {
+	uriSuffix := fmt.Sprintf("stacks/%v/versions/%v/services?fields=configurations/*", stack, version)
+	request := a.CreateGetRequest(uriSuffix, false)
+	ambariItems := ProcessAmbariItems(request)
+	return ambariItems.ConvertResponse().StackConfigs
 }

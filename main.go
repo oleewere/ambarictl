@@ -288,20 +288,45 @@ func main() {
 				Usage: "export cluster configuration to a blueprint json",
 				Action: func(c *cli.Context) error {
 					ambariRegistry := ambari.GetActiveAmbari()
-					blueprint := ambariRegistry.ExportBlueprint()
-					if len(c.String("file")) > 0 {
-						err := ioutil.WriteFile(c.String("file"), blueprint, 0644)
-						if err != nil {
-							fmt.Println(err)
+					var blueprint []byte
+					if c.Bool("minimal") {
+						clusterInfo := ambariRegistry.GetClusterInfo()
+						if len(clusterInfo.ClusterVersion) > 0 {
+							splittedString := strings.Split(clusterInfo.ClusterVersion, "-")
+							stackName := splittedString[0]
+							stackVersion := splittedString[1]
+							stackDefaults := ambariRegistry.GetStackDefaultConfigs(stackName, stackVersion)
+							largeBlueprint := ambariRegistry.ExportBlueprintAsMap()
+							blueprint = ambariRegistry.GetMinimalBlueprint(largeBlueprint, stackDefaults)
+							if len(c.String("file")) > 0 {
+								err := ioutil.WriteFile(c.String("file"), blueprint, 0644)
+								if err != nil {
+									fmt.Println(err)
+									os.Exit(1)
+								}
+								return nil
+							}
+						} else {
+							fmt.Println("Cannot find a cluster with a name and version for Ambari servrer")
 							os.Exit(1)
 						}
-						return nil
+					} else {
+						blueprint = ambariRegistry.ExportBlueprint()
+						if len(c.String("file")) > 0 {
+							err := ioutil.WriteFile(c.String("file"), blueprint, 0644)
+							if err != nil {
+								fmt.Println(err)
+								os.Exit(1)
+							}
+							return nil
+						}
 					}
 					printJson(blueprint)
 					return nil
 				},
 				Flags: []cli.Flag{
 					cli.StringFlag{Name: "file, f", Usage: "file output for the generated JSON"},
+					cli.BoolFlag{Name: "minimal, m", Usage: "use minimal configuration"},
 				},
 			},
 		},

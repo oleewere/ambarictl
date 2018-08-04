@@ -74,6 +74,20 @@ type ServiceConfig struct {
 	Properties           Properties `json:"properties,omitempty"`
 }
 
+// StackConfig represents stack default configurations (with included service name and service config type)
+type StackConfig struct {
+	ServiceConfigType string          `json:"type,omitempty"`
+	Properties        []StackProperty `json:"properties,omitempty"`
+}
+
+// StackProperty represents a stack property with default values and attributes
+type StackProperty struct {
+	Type         string `json:"type,omitempty"`
+	Name         string `json:"property_name,omitempty"`
+	Value        string `json:"property_value,omitempty"`
+	PropertyType string `json:"property_type,omitempty"`
+}
+
 // Cluster holds installed ambari cluster details
 type Cluster struct {
 	ClusterName         string  `json:"cluster_name,omitempty"`
@@ -93,4 +107,5 @@ type Response struct {
 	Components     []Component
 	HostComponents []HostComponent
 	ServiceConfigs []ServiceConfig
+	StackConfigs   map[string]StackConfig
 }

@@ -14,6 +14,10 @@
 
 package ambari
 
+import (
+	"strings"
+)
+
 // ConvertResponse converts the response items to specific types
 func (a AmbariItems) ConvertResponse() Response {
 	response := Response{}
@@ -24,12 +28,14 @@ func (a AmbariItems) ConvertResponse() Response {
 	serviceConfigs := []ServiceConfig{}
 	clusterInfo := Cluster{}
 	clusterInfo = a.Cluster
+	stackConfigs := make(map[string]StackConfig)
 	for _, item := range a.Items {
 		hosts = createHostsType(item, hosts)
 		services = createServicesType(item, services)
 		components = createComponentsType(item, components)
 		hostComponents = createHostComponentsType(item, hostComponents)
 		serviceConfigs = createServiceConfigsType(item, serviceConfigs)
+		stackConfigs = createStackConfigsType(item, stackConfigs)
 	}
 	if len(hosts) > 0 {
 		response.Hosts = hosts
@@ -48,6 +54,9 @@ func (a AmbariItems) ConvertResponse() Response {
 	}
 	if len(clusterInfo.ClusterName) > 0 {
 		response.Cluster = clusterInfo
+	}
+	if len(stackConfigs) > 0 {
+		response.StackConfigs = stackConfigs
 	}
 	return response
 }
@@ -154,4 +163,54 @@ func createServicesType(item Item, services []Service) []Service {
 		services = append(services, service)
 	}
 	return services
+}
+
+func createStackConfigsType(item Item, stackConfigMap map[string]StackConfig) map[string]StackConfig {
+	if configsVal, ok := item["configurations"]; ok {
+		stackConfI := configsVal.([]interface{})
+		for _, configVal := range stackConfI {
+			confI := configVal.(map[string]interface{})
+			if stackConfigPropertyMapVal, ok := confI["StackConfigurations"]; ok {
+				stackConfigPropsMap := stackConfigPropertyMapVal.(map[string]interface{})
+				stackConfigProp := createStackProperty(stackConfigPropsMap)
+				stackConfigEntry, ok := stackConfigMap[stackConfigProp.Type]
+				if ok {
+					stackConfigEntry.Properties = append(stackConfigEntry.Properties, stackConfigProp)
+					stackConfigMap[stackConfigProp.Type] = stackConfigEntry
+				} else {
+					stackConfig := StackConfig{}
+					stackConfig.ServiceConfigType = stackConfigProp.Type
+					stackConfig.Properties = append(stackConfig.Properties, stackConfigProp)
+					stackConfigMap[stackConfigProp.Type] = stackConfig
+				}
+			}
+		}
+	}
+	return stackConfigMap
+}
+
+func createStackProperty(stackConfigPropsMap map[string]interface{}) StackProperty {
+	stackProperty := StackProperty{}
+	if propertyName, ok := stackConfigPropsMap["property_name"]; ok {
+		stackProperty.Name = propertyName.(string)
+	}
+	if propertyValue, ok := stackConfigPropsMap["property_value"]; ok {
+		if propertyValue == nil {
+			stackProperty.Value = ""
+		} else {
+			stackProperty.Value = propertyValue.(string)
+		}
+	}
+	if propertyTypeVal, ok := stackConfigPropsMap["property_type"]; ok {
+		propertyTypeSlice := propertyTypeVal.([]interface{})
+		if len(propertyTypeSlice) < 0 {
+			propertyType := propertyTypeSlice[0]
+			stackProperty.PropertyType = propertyType.(string)
+		}
+	}
+	if typeVal, ok := stackConfigPropsMap["type"]; ok {
+		typeValue := strings.TrimSuffix(typeVal.(string), ".xml")
+		stackProperty.Type = typeValue
+	}
+	return stackProperty
 }
