@@ -85,7 +85,7 @@ func main() {
 			for _, host := range hosts {
 				tableData = append(tableData, []string{host.PublicHostname, host.IP, host.OSType, host.OSArch, strconv.FormatBool(host.UnlimitedJCE), host.HostState})
 			}
-			printTable("HOSTS:", []string{"PUBLIC HOSTNAME", "IP", "OS TYPE", "OS ARCH", "UNLIMETED_JCE", "STATE"}, tableData, c)
+			printTable("HOSTS:", []string{"PUBLIC HOSTNAME", "IP", "OS TYPE", "OS ARCH", "UNLIMITED_JCE", "STATE"}, tableData, c)
 			return nil
 		},
 	}
