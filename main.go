@@ -48,7 +48,7 @@ func main() {
 	app.Commands = []cli.Command{}
 	initCommand := cli.Command{
 		Name:  "init",
-		Usage: "Initialize Ambari registry database",
+		Usage: "Initialize Ambari server database",
 		Action: func(c *cli.Context) error {
 			ambari.CreateAmbariRegistryDb()
 			fmt.Println("Ambari registry DB has been initialized.")
@@ -58,7 +58,8 @@ func main() {
 
 	listCommand := cli.Command{
 		Name:  "list",
-		Usage: "Print all registered Ambari registries",
+		Aliases: []string{"ls"},
+		Usage: "Print all registered Ambari servers",
 		Action: func(c *cli.Context) error {
 			ambariServerEntries := ambari.ListAmbariRegistryEntries()
 			var tableData [][]string
@@ -152,7 +153,7 @@ func main() {
 
 	createCommand := cli.Command{
 		Name:  "create",
-		Usage: "Register new Ambari registry entry",
+		Usage: "Register new Ambari server entry",
 		Action: func(c *cli.Context) error {
 			name := ambari.GetStringFlag(c.String("name"), "", "Enter ambari registry name")
 			ambariEntryId := ambari.GetAmbariEntryId(name)
@@ -183,9 +184,9 @@ func main() {
 			return nil
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{Name: "name", Usage: "Name of the Ambari registry entry"},
-			cli.StringFlag{Name: "host", Usage: "Hostname of the Ambari Server"},
-			cli.StringFlag{Name: "port", Usage: "Port for Ambari Server"},
+			cli.StringFlag{Name: "name", Usage: "Name of the Ambari server entry"},
+			cli.StringFlag{Name: "host", Usage: "Hostname of the Ambari server"},
+			cli.StringFlag{Name: "port", Usage: "Port for AmbarisServer"},
 			cli.StringFlag{Name: "protocol", Usage: "Protocol for Ambar REST API: http/https"},
 			cli.StringFlag{Name: "username", Usage: "User name for Ambari server"},
 			cli.StringFlag{Name: "password", Usage: "Password for Ambari user"},
@@ -195,7 +196,7 @@ func main() {
 
 	deleteCommand := cli.Command{
 		Name:  "delete",
-		Usage: "De-register an existing Ambari registry entry",
+		Usage: "De-register an existing Ambari server entry",
 		Action: func(c *cli.Context) error {
 			if len(c.Args()) == 0 {
 				fmt.Println("Provide a registry name argument for use command. e.g.: delete vagrant")
@@ -218,21 +219,21 @@ func main() {
 
 	useCommand := cli.Command{
 		Name:  "use",
-		Usage: "Use selected Ambari registry",
+		Usage: "Use selected Ambari server",
 		Action: func(c *cli.Context) error {
 			if len(c.Args()) == 0 {
-				fmt.Println("Provide a registry name argument for use command. e.g.: use vagrant")
+				fmt.Println("Provide a server entry name argument for use command. e.g.: use vagrant")
 				os.Exit(1)
 			}
 			name := c.Args().First()
 			ambariEntryId := ambari.GetAmbariEntryId(name)
 			if len(ambariEntryId) == 0 {
-				fmt.Println("Ambari registry entry does not exist with id " + name)
+				fmt.Println("Ambari server entry does not exist with id " + name)
 				os.Exit(1)
 			}
 			ambari.DeactiveAllAmbariRegistry()
 			ambari.ActiveAmbariRegistry(name)
-			fmt.Println("Ambari registry selected with id: " + name)
+			fmt.Println("Ambari server entry selected with id: " + name)
 			return nil
 		},
 		Flags: []cli.Flag{
@@ -242,17 +243,17 @@ func main() {
 
 	clearCommand := cli.Command{
 		Name:  "clear",
-		Usage: "Drop all Ambari registry records",
+		Usage: "Drop all Ambari server records",
 		Action: func(c *cli.Context) error {
 			ambari.DropAmbariRegistryRecords()
-			fmt.Println("Ambari registry entries dropped.")
+			fmt.Println("Ambari server entries dropped.")
 			return nil
 		},
 	}
 
 	showCommand := cli.Command{
 		Name:  "show",
-		Usage: "Show active Ambari registry details",
+		Usage: "Show active Ambari server details",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
 			var tableData [][]string
