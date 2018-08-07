@@ -57,9 +57,9 @@ func main() {
 	}
 
 	listCommand := cli.Command{
-		Name:  "list",
+		Name:    "list",
 		Aliases: []string{"ls"},
-		Usage: "Print all registered Ambari servers",
+		Usage:   "Print all registered Ambari servers",
 		Action: func(c *cli.Context) error {
 			ambariServerEntries := ambari.ListAmbariRegistryEntries()
 			var tableData [][]string
@@ -69,9 +69,144 @@ func main() {
 					activeValue = "true"
 				}
 				tableData = append(tableData, []string{ambariServer.Name, ambariServer.Hostname, strconv.Itoa(ambariServer.Port), ambariServer.Protocol,
-					ambariServer.Username, "********", ambariServer.Cluster, activeValue})
+					ambariServer.Username, "********", ambariServer.Cluster, ambariServer.ConnectionProfile, activeValue})
 			}
-			printTable("AMBARI REGISTRIES:", []string{"Name", "HOSTNAME", "PORT", "PROTOCOL", "USER", "PASSWORD", "CLUSTER", "ACTIVE"}, tableData, c)
+			printTable("AMBARI REGISTRIES:", []string{"Name", "HOSTNAME", "PORT", "PROTOCOL", "USER", "PASSWORD", "CLUSTER", "PROFILE", "ACTIVE"}, tableData, c)
+			return nil
+		},
+	}
+
+	profileCommand := cli.Command{
+		Name:  "profiles",
+		Usage: "Connection profiles related commands",
+		Subcommands: []cli.Command{
+			{
+				Name:    "create",
+				Aliases: []string{"c"},
+				Usage:   "Create new connection profile",
+				Action: func(c *cli.Context) error {
+					name := ambari.GetStringFlag(c.String("name"), "", "Enter connection profile name")
+					connProfileId := ambari.GetConnectionProfileEntryId(name)
+					if len(connProfileId) > 0 {
+						fmt.Println("Connection profile entry already exists with id " + name)
+						os.Exit(1)
+					}
+					keyPath := ambari.GetStringFlag(c.String("key_path"), "", "Enter ssh key path")
+					portStr := ambari.GetStringFlag(c.String("port"), "22", "Enter ssh port")
+					port, err := strconv.Atoi(portStr)
+					if err != nil {
+						fmt.Println(err)
+						os.Exit(1)
+					}
+					userName := ambari.GetStringFlag(c.String("username"), "root", "Enter ssh username")
+					hostJumpStr := ambari.GetStringFlag(c.String("host_jump"), "n", "Use host jump?")
+					hostJump := ambari.EvaluateBoolValueAsInt(hostJumpStr)
+					proxyAddress := ""
+					if hostJump == 1 {
+						proxyAddress = ambari.GetStringFlag(c.String("proxy_address"), "none", "Set a proxy address?")
+						if proxyAddress == "none" {
+							proxyAddress = ""
+						}
+					}
+					ambari.RegisterNewConnectionProfile(name, keyPath, port, userName, hostJump, proxyAddress)
+					fmt.Println("New connection profile entry has been created: " + name)
+					return nil
+				},
+				Flags: []cli.Flag{
+					cli.StringFlag{Name: "name", Usage: "Name of the Ambari server entry"},
+					cli.StringFlag{Name: "key_path", Usage: "Hostname of the Ambari server"},
+					cli.StringFlag{Name: "port", Usage: "Port for AmbarisServer"},
+					cli.StringFlag{Name: "username", Usage: "Protocol for Ambar REST API: http/https"},
+					cli.StringFlag{Name: "host_jump", Usage: "User name for Ambari server"},
+					cli.StringFlag{Name: "proxy_address", Usage: "Password for Ambari user"},
+				},
+			},
+			{
+				Name:    "list",
+				Aliases: []string{"ls"},
+				Usage:   "Print all connection profile entries",
+				Action: func(c *cli.Context) error {
+					connectionProfiles := ambari.ListConnectionProfileEntries()
+					var tableData [][]string
+					for _, profile := range connectionProfiles {
+						hostJump := "false"
+						if profile.HostJump == 1 {
+							hostJump = "true"
+						}
+						tableData = append(tableData, []string{profile.Name, profile.KeyPath, strconv.Itoa(profile.Port), profile.Username, hostJump, profile.ProxyAddress})
+					}
+					printTable("CONNECTION PROFILES:", []string{"NAME", "KEY", "PORT", "USERNAME", "HOST JUMP", "PROXY ADDRESS"}, tableData, c)
+					return nil
+				},
+			},
+			{
+				Name:    "delete",
+				Aliases: []string{"d"},
+				Usage:   "Delete a connection profile entry by id",
+				Action: func(c *cli.Context) error {
+					if len(c.Args()) == 0 {
+						fmt.Println("Provide a profile name argument for use command. e.g.: delete vagrant")
+						os.Exit(1)
+					}
+					name := c.Args().First()
+					profileEntryId := ambari.GetConnectionProfileEntryId(name)
+					if len(profileEntryId) == 0 {
+						fmt.Println("Connection profile entry does not exist with id " + name)
+						os.Exit(1)
+					}
+					ambari.DeRegisterConnectionProfile(profileEntryId)
+					msg := fmt.Sprintf("Connection profile '%s' has been deleted successfully", profileEntryId)
+					fmt.Println(msg)
+					return nil
+				},
+			},
+			{
+				Name:    "clear",
+				Aliases: []string{"cl"},
+				Usage:   "Delete all connection profile entries",
+				Action: func(c *cli.Context) error {
+					ambari.DropConnectionProfileRecords()
+					fmt.Println("All connection profile records has been dropped")
+					return nil
+				},
+			},
+		},
+	}
+
+	attachCommand := cli.Command{
+		Name:  "attach",
+		Usage: "Attach a profile to an ambari server entry (e.g.: attach <profile> <ambariEntry> , or without <ambariEntry>, it will use the active one)",
+		Action: func(c *cli.Context) error {
+			args := c.Args()
+			if len(args) == 0 {
+				fmt.Println("Provide at least 1 argument (<profile>), or 2 (<profile> and <ambariEntry>)")
+				os.Exit(1)
+			}
+			profileId := args.Get(0)
+			var ambariRegistry ambari.AmbariRegistry
+			if len(args) == 1 {
+				ambariRegistry = ambari.GetActiveAmbari()
+				if len(ambariRegistry.Name) == 0 {
+					fmt.Println("No active ambari selected")
+					os.Exit(1)
+				}
+			} else {
+				ambariRegistryId := args.Get(1)
+				ambari.GetAmbariById(ambariRegistryId)
+				if len(ambariRegistry.Name) == 0 {
+					fmt.Println("Cannot find specific ambari server entry")
+					os.Exit(1)
+				}
+			}
+			profile := ambari.GetConnectionProfileById(profileId)
+			if len(profile.Name) == 0 {
+				fmt.Println("Cannot find specific connection profile entry")
+				os.Exit(1)
+			}
+
+			ambari.SetProfileIdForAmbariEntry(ambariRegistry.Name, profile.Name)
+			msg := fmt.Sprintf("Attach profile '%s' to '%s'", profile.Name, ambariRegistry.Name)
+			fmt.Println(msg)
 			return nil
 		},
 	}
@@ -180,7 +315,7 @@ func main() {
 			ambari.DeactiveAllAmbariRegistry()
 			ambari.RegisterNewAmbariEntry(name, host, port, protocol,
 				username, password, cluster)
-			fmt.Println("New Ambari registry entry created: " + name)
+			fmt.Println("New Ambari server entry has been created: " + name)
 			return nil
 		},
 		Flags: []cli.Flag{
@@ -259,7 +394,7 @@ func main() {
 			var tableData [][]string
 			if len(ambariRegistry.Name) > 0 {
 				tableData = append(tableData, []string{ambariRegistry.Name, ambariRegistry.Hostname, strconv.Itoa(ambariRegistry.Port), ambariRegistry.Protocol,
-					ambariRegistry.Username, "********", ambariRegistry.Cluster, "true"})
+					ambariRegistry.Username, "********", ambariRegistry.Cluster, ambariRegistry.ConnectionProfile, "true"})
 			}
 			printTable("ACTIVE AMBARI REGISTRY:", []string{"Name", "HOSTNAME", "PORT", "PROTOCOL", "USER", "PASSWORD", "CLUSTER", "ACTIVE"}, tableData, c)
 			return nil
@@ -353,6 +488,8 @@ func main() {
 	app.Commands = append(app.Commands, deleteCommand)
 	app.Commands = append(app.Commands, useCommand)
 	app.Commands = append(app.Commands, showCommand)
+	app.Commands = append(app.Commands, profileCommand)
+	app.Commands = append(app.Commands, attachCommand)
 	app.Commands = append(app.Commands, listCommand)
 	app.Commands = append(app.Commands, listAgentsCommand)
 	app.Commands = append(app.Commands, listServicesCommand)

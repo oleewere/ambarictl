@@ -16,14 +16,25 @@ package ambari
 
 // AmbariRegistry represents registered ambari server entry details
 type AmbariRegistry struct {
-	Name     string
-	Hostname string
-	Port     int
-	Username string
-	Password string
-	Protocol string
-	Cluster  string
-	Active   int
+	Name              string
+	Hostname          string
+	Port              int
+	Username          string
+	Password          string
+	Protocol          string
+	Cluster           string
+	Active            int
+	ConnectionProfile string
+}
+
+// ConnectionProfile represents ssh/connection descriptions which is used to communicate with Ambari server and agents
+type ConnectionProfile struct {
+	Name         string
+	KeyPath      string
+	Port         int
+	Username     string
+	HostJump     int
+	ProxyAddress string
 }
 
 // AmbariItems global items from Ambari rest API response
