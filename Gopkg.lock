@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/appleboy/easyssh-proxy"
+  packages = ["."]
+  revision = "33d87eae3a018c3312e32cc4eb4578d5a563aabd"
+  version = "1.1.6"
+
+[[projects]]
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
@@ -28,8 +34,18 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
-  revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
+  packages = [
+    "curve25519",
+    "ed25519",
+    "ed25519/internal/edwards25519",
+    "internal/chacha20",
+    "internal/subtle",
+    "poly1305",
+    "ssh",
+    "ssh/agent",
+    "ssh/terminal"
+  ]
+  revision = "f027049dab0ad238e394a753dba2d14753473a04"
 
 [[projects]]
   branch = "master"
@@ -38,11 +54,11 @@
     "unix",
     "windows"
   ]
-  revision = "e072cadbbdc8dd3d3ffa82b8b4b9304c261d9311"
+  revision = "acbc56fc7007d2a01796d5bde54f39e3b3e95945"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d89b483ed10b8577e68f1a57f58541334633724e760f1eddbcb287b0f9b3bf98"
+  inputs-digest = "fa602faf452c44ecbf641ac82d90f852c6d16b92af5fa6e44ee118786080e920"
   solver-name = "gps-cdcl"
   solver-version = 1

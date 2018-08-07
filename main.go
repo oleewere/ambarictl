@@ -483,11 +483,27 @@ func main() {
 		},
 	}
 
+	runCommand := cli.Command{
+		Name:  "run",
+		Usage: "Execute commands on all (or specific) hosts",
+		Action: func(c *cli.Context) error {
+			ambariServer := ambari.GetActiveAmbari()
+			args := c.Args()
+			command := ""
+			for _, arg := range args {
+				command += arg
+			}
+			ambariServer.RunAgentCommands(command)
+			return nil
+		},
+	}
+
 	app.Commands = append(app.Commands, initCommand)
 	app.Commands = append(app.Commands, createCommand)
 	app.Commands = append(app.Commands, deleteCommand)
 	app.Commands = append(app.Commands, useCommand)
 	app.Commands = append(app.Commands, showCommand)
+	app.Commands = append(app.Commands, runCommand)
 	app.Commands = append(app.Commands, profileCommand)
 	app.Commands = append(app.Commands, attachCommand)
 	app.Commands = append(app.Commands, listCommand)
