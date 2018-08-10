@@ -175,7 +175,7 @@ func main() {
 
 	attachCommand := cli.Command{
 		Name:  "attach",
-		Usage: "Attach a profile to an ambari server entry (e.g.: attach <profile> <ambariEntry> , or without <ambariEntry>, it will use the active one)",
+		Usage: "Attach a profile to an ambari server entry",
 		Action: func(c *cli.Context) error {
 			args := c.Args()
 			if len(args) == 0 {
