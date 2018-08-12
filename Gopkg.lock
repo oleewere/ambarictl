@@ -45,7 +45,7 @@
     "ssh/agent",
     "ssh/terminal"
   ]
-  revision = "f027049dab0ad238e394a753dba2d14753473a04"
+  revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
 
 [[projects]]
   branch = "master"
@@ -54,11 +54,17 @@
     "unix",
     "windows"
   ]
-  revision = "acbc56fc7007d2a01796d5bde54f39e3b3e95945"
+  revision = "98c5dad5d1a0e8a73845ecc8897d0bd56586511d"
+
+[[projects]]
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fa602faf452c44ecbf641ac82d90f852c6d16b92af5fa6e44ee118786080e920"
+  inputs-digest = "e5f2aa3a3dad6a38a4cd186fe0df72c565b8f30db3ad6683bada7f8d11ebfbfc"
   solver-name = "gps-cdcl"
   solver-version = 1

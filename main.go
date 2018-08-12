@@ -498,12 +498,30 @@ func main() {
 		},
 	}
 
+	playbookCommand := cli.Command{
+		Name:  "playbook",
+		Usage: "Execute a list of commands defined in playbook file(s)",
+		Action: func(c *cli.Context) error {
+			ambariServer := ambari.GetActiveAmbari()
+			if len(c.String("file")) > 0 {
+				fmt.Println("Provide --file parameter")
+			}
+			playbook := ambari.LoadPlaybookFile(c.String("file"))
+			ambariServer.ExecutePlaybook(playbook)
+			return nil
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "file, f", Usage: "Playbook file"},
+		},
+	}
+
 	app.Commands = append(app.Commands, initCommand)
 	app.Commands = append(app.Commands, createCommand)
 	app.Commands = append(app.Commands, deleteCommand)
 	app.Commands = append(app.Commands, useCommand)
 	app.Commands = append(app.Commands, showCommand)
 	app.Commands = append(app.Commands, runCommand)
+	app.Commands = append(app.Commands, playbookCommand)
 	app.Commands = append(app.Commands, profileCommand)
 	app.Commands = append(app.Commands, attachCommand)
 	app.Commands = append(app.Commands, listCommand)
