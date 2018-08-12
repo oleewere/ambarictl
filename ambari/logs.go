@@ -66,7 +66,7 @@ func (a AmbariRegistry) DownloadLogs(dest string, filter Filter) {
 					for _, hostComponent := range hostComponents {
 						componentMap[hostComponent.HostComponentName] = true
 					}
-					for component, _ := range componentMap {
+					for component := range componentMap {
 						componentFilter := Filter{Hosts: filter.Hosts, Components: []string{component}}
 						hosts := a.GetFilteredHosts(componentFilter)
 						fmt.Println(component)

@@ -38,7 +38,7 @@ func (a AmbariRegistry) RunRemoteHostCommand(command string, filteredHosts map[s
 		os.Exit(1)
 	}
 	connectionProfile := GetConnectionProfileById(connectionProfileId)
-	hosts := make(map[string]bool)
+	var hosts map[string]bool
 	if len(filteredHosts) > 0 {
 		hosts = filteredHosts
 	} else {
@@ -47,7 +47,7 @@ func (a AmbariRegistry) RunRemoteHostCommand(command string, filteredHosts map[s
 	response := make(map[string]RemoteResponse)
 	var wg sync.WaitGroup
 	wg.Add(len(hosts))
-	for host, _ := range hosts {
+	for host := range hosts {
 		ssh := &easyssh.MakeConfig{
 			User:    connectionProfile.Username,
 			Server:  host,
