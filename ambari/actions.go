@@ -35,7 +35,7 @@ func (a AmbariRegistry) ListServices() []Service {
 
 //ListComponents get all installed components
 func (a AmbariRegistry) ListComponents() []Component {
-	request := a.CreateGetRequest("components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/state", true)
+	request := a.CreateGetRequest("components?fields=ServiceComponentInfo/component_name,ServiceComponentInfo/service_name,ServiceComponentInfo/state", true)
 	ambariItems := ProcessAmbariItems(request)
 	return ambariItems.ConvertResponse().Components
 }

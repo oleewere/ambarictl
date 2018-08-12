@@ -67,6 +67,7 @@ type Service struct {
 // Component ambari managed component details
 type Component struct {
 	ComponentName  string `json:"component_name,omitempty"`
+	ServiceName    string `json:"service_name,omitempty"`
 	ComponentState string `json:"state,omitempty"`
 }
 

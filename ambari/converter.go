@@ -123,6 +123,9 @@ func createComponentsType(item Item, components []Component) []Component {
 		if componentName, ok := componentI["component_name"]; ok {
 			component.ComponentName = componentName.(string)
 		}
+		if serviceName, ok := componentI["service_name"]; ok {
+			component.ServiceName = serviceName.(string)
+		}
 		if state, ok := componentI["state"]; ok {
 			component.ComponentState = state.(string)
 		}
