@@ -21,6 +21,27 @@ import (
 	"strings"
 )
 
+// GetConfigValue get a value from the blueprint for a speficfic config property with a config type
+func GetConfigValue(blueprint map[string]interface{}, configType string, configProperty string) string {
+	if configurationsVal, ok := blueprint["configurations"]; ok {
+		configEntries := configurationsVal.([]interface{})
+		for _, configEntry := range configEntries {
+			confI := configEntry.(map[string]interface{})
+			for confType, props := range confI {
+				propsI := props.(map[string]interface{})
+				properties := propsI["properties"].(map[string]interface{})
+				for propertyKey, propertyVal := range properties {
+					property := propertyVal.(string)
+					if confType == configType && propertyKey == configProperty {
+						return property
+					}
+				}
+			}
+		}
+	}
+	return ""
+}
+
 // GetMinimalBlueprint obtain minimal blueprint - compare properties with stack default properties and get a minimal blueprint configuration
 func (a AmbariRegistry) GetMinimalBlueprint(blueprint map[string]interface{}, stackDefaults map[string]StackConfig) []byte {
 	if configurationsVal, ok := blueprint["configurations"]; ok {

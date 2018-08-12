@@ -23,29 +23,39 @@ import (
 	"time"
 )
 
-// RunAgentCommands executes bash commands on ambari agent hosts
-func (a AmbariRegistry) RunAgentCommands(command string) {
+// RemoteResponse represents an ssh command output
+type RemoteResponse struct {
+	StdOut string
+	StdErr string
+	Done   bool
+}
+
+// RunRemoteHostCommand executes bash commands on ambari agent hosts
+func (a AmbariRegistry) RunRemoteHostCommand(command string, filteredHosts map[string]bool) map[string]RemoteResponse {
 	connectionProfileId := a.ConnectionProfile
 	if len(connectionProfileId) == 0 {
 		fmt.Println("No connection profile is attached for the active ambari server entry!")
 		os.Exit(1)
 	}
 	connectionProfile := GetConnectionProfileById(connectionProfileId)
-
-	agents := a.ListAgents()
-	agentHosts := make([]string, len(agents))
+	hosts := make(map[string]bool)
+	if len(filteredHosts) > 0 {
+		hosts = filteredHosts
+	} else {
+		hosts = a.GetFilteredHosts(Filter{})
+	}
+	response := make(map[string]RemoteResponse)
 	var wg sync.WaitGroup
-	wg.Add(len(agents))
-	for _, agent := range agents {
-		agentHosts = append(agentHosts, agent.IP)
+	wg.Add(len(hosts))
+	for host, _ := range hosts {
 		ssh := &easyssh.MakeConfig{
 			User:    connectionProfile.Username,
-			Server:  agent.IP,
+			Server:  host,
 			KeyPath: connectionProfile.KeyPath,
 			Port:    strconv.Itoa(connectionProfile.Port),
 			Timeout: 60 * time.Second,
 		}
-		go func(ssh *easyssh.MakeConfig, command string, host string) {
+		go func(ssh *easyssh.MakeConfig, command string, host string, response map[string]RemoteResponse) {
 			defer wg.Done()
 			stdout, stderr, done, err := ssh.Run(command, 60)
 			// Handle errors
@@ -61,8 +71,10 @@ func (a AmbariRegistry) RunAgentCommands(command string) {
 					fmt.Println("std error:")
 					fmt.Println(stderr)
 				}
+				response[host] = RemoteResponse{StdOut: stdout, StdErr: stderr, Done: done}
 			}
-		}(ssh, command, agent.IP)
+		}(ssh, command, host, response)
 	}
 	wg.Wait()
+	return response
 }

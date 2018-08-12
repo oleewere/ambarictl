@@ -61,7 +61,7 @@ func (a AmbariRegistry) ExecutePlaybook(playbook Playbook) {
 	tasks := playbook.Tasks
 	for _, task := range tasks {
 		if len(task.Command) > 0 {
-			a.RunAgentCommands(task.Command)
+			a.RunRemoteHostCommand(task.Command, nil)
 		}
 	}
 }

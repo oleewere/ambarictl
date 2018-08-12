@@ -249,9 +249,9 @@ func main() {
 			components := ambariRegistry.ListComponents()
 			var tableData [][]string
 			for _, component := range components {
-				tableData = append(tableData, []string{component.ComponentName, component.ComponentState})
+				tableData = append(tableData, []string{component.ComponentName, component.ServiceName, component.ComponentState})
 			}
-			printTable("COMPONENTS:", []string{"NAME", "STATE"}, tableData, c)
+			printTable("COMPONENTS:", []string{"NAME", "SERVICE", "STATE"}, tableData, c)
 			return nil
 		},
 	}
@@ -493,8 +493,17 @@ func main() {
 			for _, arg := range args {
 				command += arg
 			}
-			ambariServer.RunAgentCommands(command)
+			filter := ambari.CreateFilter(strings.ToUpper(c.String("services")),
+				strings.ToUpper(c.String("components")), c.String("hosts"), c.Bool("server"))
+			hosts := ambariServer.GetFilteredHosts(filter)
+			ambariServer.RunRemoteHostCommand(command, hosts)
 			return nil
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{Name: "server", Usage: "Download server logs flag"},
+			cli.StringFlag{Name: "services, s", Usage: "Filter on services (comma separated)"},
+			cli.StringFlag{Name: "components, c", Usage: "Filter on components (comma separated)"},
+			cli.StringFlag{Name: "hosts", Usage: "Filter on hosts (comma separated)"},
 		},
 	}
 
@@ -503,8 +512,9 @@ func main() {
 		Usage: "Execute a list of commands defined in playbook file(s)",
 		Action: func(c *cli.Context) error {
 			ambariServer := ambari.GetActiveAmbari()
-			if len(c.String("file")) > 0 {
+			if len(c.String("file")) == 0 {
 				fmt.Println("Provide --file parameter")
+				os.Exit(1)
 			}
 			playbook := ambari.LoadPlaybookFile(c.String("file"))
 			ambariServer.ExecutePlaybook(playbook)
@@ -512,6 +522,29 @@ func main() {
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{Name: "file, f", Usage: "Playbook file"},
+		},
+	}
+
+	logsCommand := cli.Command{
+		Name:  "logs",
+		Usage: "Download logs from Ambari agents",
+		Action: func(c *cli.Context) error {
+			ambariServer := ambari.GetActiveAmbari()
+			if len(c.String("destination")) == 0 {
+				fmt.Println("Provide --destination parameter")
+				os.Exit(1)
+			}
+			filter := ambari.CreateFilter(strings.ToUpper(c.String("services")),
+				strings.ToUpper(c.String("components")), c.String("hosts"), c.Bool("server"))
+			ambariServer.DownloadLogs(c.String("destination"), filter)
+			return nil
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "destination, d", Usage: "Download destination"},
+			cli.BoolFlag{Name: "server", Usage: "Download server logs flag"},
+			cli.StringFlag{Name: "services, s", Usage: "Filter on services (comma separated)"},
+			cli.StringFlag{Name: "components, c", Usage: "Filter on components (comma separated)"},
+			cli.StringFlag{Name: "hosts", Usage: "Filter on hosts (comma separated)"},
 		},
 	}
 
@@ -531,6 +564,7 @@ func main() {
 	app.Commands = append(app.Commands, listHostComponentsCommand)
 	app.Commands = append(app.Commands, configsCommand)
 	app.Commands = append(app.Commands, clusterCommand)
+	app.Commands = append(app.Commands, logsCommand)
 	app.Commands = append(app.Commands, clearCommand)
 
 	err := app.Run(os.Args)
