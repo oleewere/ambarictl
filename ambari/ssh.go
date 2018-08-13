@@ -16,7 +16,9 @@ package ambari
 
 import (
 	"fmt"
+	"github.com/appleboy/easyssh-proxy"
 	"os"
+	"path"
 	"strconv"
 	"sync"
 	"time"
@@ -47,14 +49,14 @@ func (a AmbariRegistry) RunRemoteHostCommand(command string, filteredHosts map[s
 	var wg sync.WaitGroup
 	wg.Add(len(hosts))
 	for host := range hosts {
-		ssh := &MakeConfig{
+		ssh := &easyssh.MakeConfig{
 			User:    connectionProfile.Username,
 			Server:  host,
 			KeyPath: connectionProfile.KeyPath,
 			Port:    strconv.Itoa(connectionProfile.Port),
 			Timeout: 60 * time.Second,
 		}
-		go func(ssh *MakeConfig, command string, host string, response map[string]RemoteResponse) {
+		go func(ssh *easyssh.MakeConfig, command string, host string, response map[string]RemoteResponse) {
 			defer wg.Done()
 			stdout, stderr, done, err := ssh.Run(command, 60)
 			// Handle errors
@@ -78,8 +80,8 @@ func (a AmbariRegistry) RunRemoteHostCommand(command string, filteredHosts map[s
 	return response
 }
 
-// CopyFromRemote copy files locally from remote location
-func (a AmbariRegistry) CopyFromRemote(dest string, filteredHosts map[string]bool) {
+// CopyFolderFromRemote copy folder (zipping it first) to local filesystem from remote location
+func (a AmbariRegistry) CopyFolderFromRemote(component string, source string, dest string, filteredHosts map[string]bool) {
 	connectionProfileId := a.ConnectionProfile
 	if len(connectionProfileId) == 0 {
 		fmt.Println("No connection profile is attached for the active ambari server entry!")
@@ -96,17 +98,37 @@ func (a AmbariRegistry) CopyFromRemote(dest string, filteredHosts map[string]boo
 	var wg sync.WaitGroup
 	wg.Add(len(hosts))
 	for host := range hosts {
-		ssh := &MakeConfig{
+		ssh := &easyssh.MakeConfig{
 			User:    connectionProfile.Username,
 			Server:  host,
 			KeyPath: connectionProfile.KeyPath,
 			Port:    strconv.Itoa(connectionProfile.Port),
 			Timeout: 60 * time.Second,
 		}
-		go func(ssh *MakeConfig, dest string, host string) {
+		go func(ssh *easyssh.MakeConfig, component string, source string, dest string, host string) {
 			defer wg.Done()
-			//ScpDownload(ssh, "", "")
-		}(ssh, dest, host)
+			tmpSource := fmt.Sprintf("/tmp/%v.tar.gz", component)
+			command := fmt.Sprintf("cd %v && tar -cvf %v *", source, tmpSource)
+			stdout, stderr, _, err := ssh.Run(command, 60)
+			// Handle errors
+			if err != nil {
+				panic("Can't run remote command: " + err.Error())
+			} else {
+				if len(stdout) > 0 {
+					fmt.Println(fmt.Sprintf("Zipping '%v' log files has been finished on host %v", component, host))
+				}
+				if len(stderr) > 0 {
+					fmt.Println("std error:")
+					fmt.Println(stderr)
+				}
+			}
+			hostFolder := path.Join(dest, host)
+			os.MkdirAll(hostFolder, os.ModePerm)
+			err = DownloadViaScp(ssh, tmpSource, hostFolder)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}(ssh, component, source, dest, host)
 	}
 	wg.Wait()
 }

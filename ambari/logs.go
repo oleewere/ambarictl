@@ -16,7 +16,10 @@ package ambari
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"strings"
+	"time"
 )
 
 var logDirMap = map[string]map[string]map[string]string{
@@ -55,6 +58,7 @@ var logDirMap = map[string]map[string]map[string]string{
 // DownloadLogs download specific logs that can be filtered by hosts, components or service (by default, it downloads agent logs)
 func (a AmbariRegistry) DownloadLogs(dest string, filter Filter) {
 	componentLogDirMap := getComponentLogDirMap(a, filter)
+	downloadFolder := createDownloadRootFolder(dest, a.Name)
 	if filter.Server {
 		serverHosts := a.GetFilteredHosts(filter)
 		getLogDirCommand := "cat /etc/ambari-server/conf/log4j.properties | grep ambari.root.dir"
@@ -68,6 +72,9 @@ func (a AmbariRegistry) DownloadLogs(dest string, filter Filter) {
 			ambariLogDir = strings.Replace(ambariLogDirUnformatted, "//", "/", -1)
 		}
 		fmt.Println(ambariLogDir)
+		componentName := "ambari-server"
+		componentDownloadFolder := createDownloadFolder(downloadFolder, componentName)
+		a.CopyFolderFromRemote(componentName, ambariLogDir, componentDownloadFolder, serverHosts)
 	} else {
 		if len(componentLogDirMap) > 0 {
 			if len(filter.Services) > 0 {
@@ -80,8 +87,8 @@ func (a AmbariRegistry) DownloadLogs(dest string, filter Filter) {
 					for component := range componentMap {
 						componentFilter := Filter{Hosts: filter.Hosts, Components: []string{component}}
 						hosts := a.GetFilteredHosts(componentFilter)
-						fmt.Println(component)
-						fmt.Println(hosts)
+						componentDownloadFolder := createDownloadFolder(downloadFolder, component)
+						a.CopyFolderFromRemote(component, componentLogDirMap[component], componentDownloadFolder, hosts)
 					}
 				}
 			}
@@ -89,13 +96,29 @@ func (a AmbariRegistry) DownloadLogs(dest string, filter Filter) {
 				for _, component := range filter.Components {
 					componentFilter := Filter{Hosts: filter.Hosts, Components: []string{component}}
 					hosts := a.GetFilteredHosts(componentFilter)
-					fmt.Println(component)
-					fmt.Println(hosts)
+					componentDownloadFolder := createDownloadFolder(downloadFolder, component)
+					a.CopyFolderFromRemote(component, componentLogDirMap[component], componentDownloadFolder, hosts)
 				}
 			}
 		} else {
 			hosts := a.GetFilteredHosts(filter)
-			fmt.Println(hosts)
+			ambariAgentLogDir := "/var/log/ambari-agent"
+			componentName := "ambari-agent"
+			getLogDirCommand := "cat /etc/ambari-agent/conf/ambari-agent.ini | grep logdir"
+			for host := range hosts {
+				smallMap := make(map[string]bool)
+				smallMap[host] = true
+				responses := a.RunRemoteHostCommand(getLogDirCommand, smallMap)
+				for _, response := range responses {
+					splittedResponses := strings.Split(response.StdOut, "\n")
+					propertyMap := ConvertStingsToMap(splittedResponses)
+					ambariAgentLogDirValue := propertyMap["logdir"]
+					ambariAgentLogDir = strings.TrimSpace(ambariAgentLogDirValue)
+				}
+				break
+			}
+			componentDownloadFolder := createDownloadFolder(downloadFolder, componentName)
+			a.CopyFolderFromRemote(componentName, ambariAgentLogDir, componentDownloadFolder, hosts)
 		}
 	}
 	return
@@ -154,4 +177,18 @@ func getComponentLogDirMap(ambariRegistry AmbariRegistry, filter Filter) map[str
 		}
 	}
 	return componentLogDirMap
+}
+
+func createDownloadFolder(dest string, component string) string {
+	newPath := path.Join(dest, component)
+	os.MkdirAll(newPath, os.ModePerm)
+	return newPath
+}
+
+func createDownloadRootFolder(dest string, registryName string) string {
+	t := time.Now()
+	timestamp := t.Format("20060102150405")
+	newPath := path.Join(dest, "download-"+registryName+"-"+timestamp)
+	os.MkdirAll(newPath, os.ModePerm)
+	return newPath
 }

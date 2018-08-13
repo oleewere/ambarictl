@@ -28,7 +28,7 @@ func ConvertStingsToMap(keyValueStrings []string) map[string]string {
 		if len(keyValue) > 0 {
 			keyValuePair := strings.SplitN(keyValue, "=", 2)
 			if len(keyValuePair) == 2 {
-				key := keyValuePair[0]
+				key := strings.TrimSpace(keyValuePair[0])
 				value := keyValuePair[1]
 				responseMap[key] = value
 			}
