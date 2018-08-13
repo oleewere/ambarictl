@@ -21,6 +21,22 @@ import (
 	"strings"
 )
 
+// ConvertStingsToMap generate a map from strings (like key=value)
+func ConvertStingsToMap(keyValueStrings []string) map[string]string {
+	responseMap := make(map[string]string)
+	for _, keyValue := range keyValueStrings {
+		if len(keyValue) > 0 {
+			keyValuePair := strings.SplitN(keyValue, "=", 2)
+			if len(keyValuePair) == 2 {
+				key := keyValuePair[0]
+				value := keyValuePair[1]
+				responseMap[key] = value
+			}
+		}
+	}
+	return responseMap
+}
+
 // GetConfigValue get a value from the blueprint for a speficfic config property with a config type
 func GetConfigValue(blueprint map[string]interface{}, configType string, configProperty string) string {
 	if configurationsVal, ok := blueprint["configurations"]; ok {

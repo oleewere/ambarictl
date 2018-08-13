@@ -16,7 +16,6 @@ package ambari
 
 import (
 	"fmt"
-	"github.com/appleboy/easyssh-proxy"
 	"os"
 	"strconv"
 	"sync"
@@ -48,14 +47,14 @@ func (a AmbariRegistry) RunRemoteHostCommand(command string, filteredHosts map[s
 	var wg sync.WaitGroup
 	wg.Add(len(hosts))
 	for host := range hosts {
-		ssh := &easyssh.MakeConfig{
+		ssh := &MakeConfig{
 			User:    connectionProfile.Username,
 			Server:  host,
 			KeyPath: connectionProfile.KeyPath,
 			Port:    strconv.Itoa(connectionProfile.Port),
 			Timeout: 60 * time.Second,
 		}
-		go func(ssh *easyssh.MakeConfig, command string, host string, response map[string]RemoteResponse) {
+		go func(ssh *MakeConfig, command string, host string, response map[string]RemoteResponse) {
 			defer wg.Done()
 			stdout, stderr, done, err := ssh.Run(command, 60)
 			// Handle errors
@@ -77,4 +76,37 @@ func (a AmbariRegistry) RunRemoteHostCommand(command string, filteredHosts map[s
 	}
 	wg.Wait()
 	return response
+}
+
+// CopyFromRemote copy files locally from remote location
+func (a AmbariRegistry) CopyFromRemote(dest string, filteredHosts map[string]bool) {
+	connectionProfileId := a.ConnectionProfile
+	if len(connectionProfileId) == 0 {
+		fmt.Println("No connection profile is attached for the active ambari server entry!")
+		os.Exit(1)
+	}
+	connectionProfile := GetConnectionProfileById(connectionProfileId)
+	var hosts map[string]bool
+	if len(filteredHosts) > 0 {
+		hosts = filteredHosts
+	} else {
+		hosts = a.GetFilteredHosts(Filter{})
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(len(hosts))
+	for host := range hosts {
+		ssh := &MakeConfig{
+			User:    connectionProfile.Username,
+			Server:  host,
+			KeyPath: connectionProfile.KeyPath,
+			Port:    strconv.Itoa(connectionProfile.Port),
+			Timeout: 60 * time.Second,
+		}
+		go func(ssh *MakeConfig, dest string, host string) {
+			defer wg.Done()
+			//ScpDownload(ssh, "", "")
+		}(ssh, dest, host)
+	}
+	wg.Wait()
 }

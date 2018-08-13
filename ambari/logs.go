@@ -16,6 +16,7 @@ package ambari
 
 import (
 	"fmt"
+	"strings"
 )
 
 var logDirMap = map[string]map[string]map[string]string{
@@ -56,7 +57,17 @@ func (a AmbariRegistry) DownloadLogs(dest string, filter Filter) {
 	componentLogDirMap := getComponentLogDirMap(a, filter)
 	if filter.Server {
 		serverHosts := a.GetFilteredHosts(filter)
-		fmt.Println(serverHosts)
+		getLogDirCommand := "cat /etc/ambari-server/conf/log4j.properties | grep ambari.root.dir"
+		responses := a.RunRemoteHostCommand(getLogDirCommand, serverHosts)
+		ambariLogDir := "/var/log/ambari-server"
+		for _, response := range responses {
+			splittedResponses := strings.Split(response.StdOut, "\n")
+			propertyMap := ConvertStingsToMap(splittedResponses)
+			ambariRootDir := propertyMap["ambari.root.dir"]
+			ambariLogDirUnformatted := strings.Replace(propertyMap["ambari.log.dir"], "${ambari.root.dir}", ambariRootDir, 1)
+			ambariLogDir = strings.Replace(ambariLogDirUnformatted, "//", "/", -1)
+		}
+		fmt.Println(ambariLogDir)
 	} else {
 		if len(componentLogDirMap) > 0 {
 			if len(filter.Services) > 0 {

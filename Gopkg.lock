@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/appleboy/easyssh-proxy"
-  packages = ["."]
-  revision = "33d87eae3a018c3312e32cc4eb4578d5a563aabd"
-  version = "1.1.6"
-
-[[projects]]
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
@@ -65,6 +59,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e5f2aa3a3dad6a38a4cd186fe0df72c565b8f30db3ad6683bada7f8d11ebfbfc"
+  inputs-digest = "1784221bca070f3c0aebd4d9eb850e1a37ee7feaf612de89f9b99177e22e7439"
   solver-name = "gps-cdcl"
   solver-version = 1

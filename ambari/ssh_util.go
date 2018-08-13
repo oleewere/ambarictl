@@ -1,23 +1,33 @@
-// Package easyssh provides a simple implementation of some SSH protocol
-// features in Go. You can simply run a command on a remote server or get a file
-// even simpler than native console SSH client. You don't need to think about
-// Dials, sessions, defers, or public keys... Let easyssh think about it!
-package easyssh
+// Copyright 2018 Oliver Szabo
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package ambari
 
 import (
 	"bufio"
 	"fmt"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/agent"
 	"io"
 	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
 	"time"
-
-	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/agent"
 )
 
+// NOTE: majority of the code copied from easy-ssh proxy see: github.com/appleboy/easyssh-proxy
 type (
 	// MakeConfig Contains main authority information.
 	// User field should be a name of user on remote server (ex. john in ssh john@example.com).
@@ -100,46 +110,46 @@ func getSSHConfig(config DefaultConfig) *ssh.ClientConfig {
 }
 
 // connect to remote server using MakeConfig struct and returns *ssh.Session
-func (ssh_conf *MakeConfig) connect() (*ssh.Session, error) {
+func (sshConf *MakeConfig) connect() (*ssh.Session, error) {
 	var client *ssh.Client
 	var err error
 
 	targetConfig := getSSHConfig(DefaultConfig{
-		User:     ssh_conf.User,
-		Key:      ssh_conf.Key,
-		KeyPath:  ssh_conf.KeyPath,
-		Password: ssh_conf.Password,
-		Timeout:  ssh_conf.Timeout,
+		User:     sshConf.User,
+		Key:      sshConf.Key,
+		KeyPath:  sshConf.KeyPath,
+		Password: sshConf.Password,
+		Timeout:  sshConf.Timeout,
 	})
 
 	// Enable proxy command
-	if ssh_conf.Proxy.Server != "" {
+	if sshConf.Proxy.Server != "" {
 		proxyConfig := getSSHConfig(DefaultConfig{
-			User:     ssh_conf.Proxy.User,
-			Key:      ssh_conf.Proxy.Key,
-			KeyPath:  ssh_conf.Proxy.KeyPath,
-			Password: ssh_conf.Proxy.Password,
-			Timeout:  ssh_conf.Proxy.Timeout,
+			User:     sshConf.Proxy.User,
+			Key:      sshConf.Proxy.Key,
+			KeyPath:  sshConf.Proxy.KeyPath,
+			Password: sshConf.Proxy.Password,
+			Timeout:  sshConf.Proxy.Timeout,
 		})
 
-		proxyClient, err := ssh.Dial("tcp", net.JoinHostPort(ssh_conf.Proxy.Server, ssh_conf.Proxy.Port), proxyConfig)
+		proxyClient, err := ssh.Dial("tcp", net.JoinHostPort(sshConf.Proxy.Server, sshConf.Proxy.Port), proxyConfig)
 		if err != nil {
 			return nil, err
 		}
 
-		conn, err := proxyClient.Dial("tcp", net.JoinHostPort(ssh_conf.Server, ssh_conf.Port))
+		conn, err := proxyClient.Dial("tcp", net.JoinHostPort(sshConf.Server, sshConf.Port))
 		if err != nil {
 			return nil, err
 		}
 
-		ncc, chans, reqs, err := ssh.NewClientConn(conn, net.JoinHostPort(ssh_conf.Server, ssh_conf.Port), targetConfig)
+		ncc, chans, reqs, err := ssh.NewClientConn(conn, net.JoinHostPort(sshConf.Server, sshConf.Port), targetConfig)
 		if err != nil {
 			return nil, err
 		}
 
 		client = ssh.NewClient(ncc, chans, reqs)
 	} else {
-		client, err = ssh.Dial("tcp", net.JoinHostPort(ssh_conf.Server, ssh_conf.Port), targetConfig)
+		client, err = ssh.Dial("tcp", net.JoinHostPort(sshConf.Server, sshConf.Port), targetConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -156,7 +166,7 @@ func (ssh_conf *MakeConfig) connect() (*ssh.Session, error) {
 // Stream returns one channel that combines the stdout and stderr of the command
 // as it is run on the remote machine, and another that sends true when the
 // command is done. The sessions and channels will then be closed.
-func (ssh_conf *MakeConfig) Stream(command string, timeout int) (<-chan string, <-chan string, <-chan bool, <-chan error, error) {
+func (sshConf *MakeConfig) Stream(command string, timeout int) (<-chan string, <-chan string, <-chan bool, <-chan error, error) {
 	// continuously send the command's output over the channel
 	stdoutChan := make(chan string)
 	stderrChan := make(chan string)
@@ -164,7 +174,7 @@ func (ssh_conf *MakeConfig) Stream(command string, timeout int) (<-chan string, 
 	errChan := make(chan error)
 
 	// connect to remote host
-	session, err := ssh_conf.connect()
+	session, err := sshConf.connect()
 	if err != nil {
 		return stdoutChan, stderrChan, doneChan, errChan, err
 	}
@@ -225,8 +235,8 @@ func (ssh_conf *MakeConfig) Stream(command string, timeout int) (<-chan string, 
 }
 
 // Run command on remote machine and returns its stdout as a string
-func (ssh_conf *MakeConfig) Run(command string, timeout int) (outStr string, errStr string, isTimeout bool, err error) {
-	stdoutChan, stderrChan, doneChan, errChan, err := ssh_conf.Stream(command, timeout)
+func (sshConf *MakeConfig) Run(command string, timeout int) (outStr string, errStr string, isTimeout bool, err error) {
+	stdoutChan, stderrChan, doneChan, errChan, err := sshConf.Stream(command, timeout)
 	if err != nil {
 		return outStr, errStr, isTimeout, err
 	}
@@ -252,8 +262,8 @@ loop:
 }
 
 // Scp uploads sourceFile to remote machine like native scp console app.
-func (ssh_conf *MakeConfig) Scp(sourceFile string, etargetFile string) error {
-	session, err := ssh_conf.connect()
+func (sshConf *MakeConfig) Scp(sourceFile string, etargetFile string) error {
+	session, err := sshConf.connect()
 
 	if err != nil {
 		return err
