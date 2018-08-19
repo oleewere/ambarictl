@@ -58,8 +58,7 @@ function main() {
   fi
 
   if [[ "$RELEASE" == "true" ]]; then
-    echo "Release ..."
-    exit 0
+    docker run -w /go/src/github.com/oleewere/ambarictl -e GITHUB_TOKEN=$GITHUB_TOKEN --rm -v $AMBARICTL_ROOT_DIR/vendor/:/go/src/ -v $AMBARICTL_ROOT_DIR:/go/src/github.com/oleewere/ambarictl bepsays/ci-goreleaser:latest goreleaser --debug --rm-dist
   elif [[ "$RELEASE_BUILD_ONLY" == "true" ]]; then
     docker run -w /go/src/github.com/oleewere/ambarictl -e GITHUB_TOKEN=$GITHUB_TOKEN --rm -v $AMBARICTL_ROOT_DIR/vendor/:/go/src/ -v $AMBARICTL_ROOT_DIR:/go/src/github.com/oleewere/ambarictl bepsays/ci-goreleaser:latest goreleaser --snapshot --debug --rm-dist --skip-publish
   fi
