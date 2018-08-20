@@ -80,6 +80,106 @@ func (a AmbariRegistry) RunRemoteHostCommand(command string, filteredHosts map[s
 	return response
 }
 
+// CopyToRemote copy local file to remote host(s)
+func (a AmbariRegistry) CopyToRemote(source string, dest string, filteredHosts map[string]bool) {
+	connectionProfileId := a.ConnectionProfile
+	if len(connectionProfileId) == 0 {
+		fmt.Println("No connection profile is attached for the active ambari server entry!")
+		os.Exit(1)
+	}
+	connectionProfile := GetConnectionProfileById(connectionProfileId)
+	var hosts map[string]bool
+	if len(filteredHosts) > 0 {
+		hosts = filteredHosts
+	} else {
+		hosts = a.GetFilteredHosts(Filter{})
+	}
+	var wg sync.WaitGroup
+	wg.Add(len(hosts))
+	for host := range hosts {
+		ssh := &easyssh.MakeConfig{
+			User:    connectionProfile.Username,
+			Server:  host,
+			KeyPath: connectionProfile.KeyPath,
+			Port:    strconv.Itoa(connectionProfile.Port),
+			Timeout: 60 * time.Second,
+		}
+		go func(ssh *easyssh.MakeConfig, source string, dest string, host string) {
+			defer wg.Done()
+			err := ssh.Scp(source, dest)
+			// Handle errors
+			if (err != nil) {
+				errMsg := fmt.Sprintf("Can't run remote command on host '%v (scp %v to %v)", host, source, dest)
+				fmt.Println(errMsg)
+			} else {
+				succMsg := fmt.Sprintf("Copying to remote host '%v' is successful. (from - %v, to %v)", host, source, dest)
+				fmt.Println(succMsg)
+			}
+		}(ssh, source, dest, host)
+	}
+	wg.Wait()
+}
+
+// CopyFromRemote copy 1 file from 1 remote host to locally
+func (a AmbariRegistry) CopyFromRemote(source string, dest string, host string) {
+	connectionProfileId := a.ConnectionProfile
+	if len(connectionProfileId) == 0 {
+		fmt.Println("No connection profile is attached for the active ambari server entry!")
+		os.Exit(1)
+	}
+	connectionProfile := GetConnectionProfileById(connectionProfileId)
+	ssh := &easyssh.MakeConfig{
+		User:    connectionProfile.Username,
+		Server:  host,
+		KeyPath: connectionProfile.KeyPath,
+		Port:    strconv.Itoa(connectionProfile.Port),
+		Timeout: 60 * time.Second,
+	}
+	err := DownloadViaScp(ssh, source, dest)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+// CopyFromRemoteHosts copy remote file to remote host(s)
+func (a AmbariRegistry) CopyFromRemoteHosts(source string, dest string, filteredHosts map[string]bool) {
+	connectionProfileId := a.ConnectionProfile
+	if len(connectionProfileId) == 0 {
+		fmt.Println("No connection profile is attached for the active ambari server entry!")
+		os.Exit(1)
+	}
+	connectionProfile := GetConnectionProfileById(connectionProfileId)
+	var hosts map[string]bool
+	if len(filteredHosts) > 0 {
+		hosts = filteredHosts
+	} else {
+		hosts = a.GetFilteredHosts(Filter{})
+	}
+	var wg sync.WaitGroup
+	wg.Add(len(hosts))
+	for host := range hosts {
+		ssh := &easyssh.MakeConfig{
+			User:    connectionProfile.Username,
+			Server:  host,
+			KeyPath: connectionProfile.KeyPath,
+			Port:    strconv.Itoa(connectionProfile.Port),
+			Timeout: 60 * time.Second,
+		}
+		go func(ssh *easyssh.MakeConfig, source string, dest string, host string) {
+			defer wg.Done()
+			hostFolder := path.Join(dest, host)
+			os.MkdirAll(hostFolder, os.ModePerm)
+			err := DownloadViaScp(ssh, source, hostFolder)
+			if err != nil {
+				fmt.Println(fmt.Sprintf("Failed to copy from host '%v', reason:", host))
+				fmt.Println(err)
+			}
+		}(ssh, source, dest, host)
+	}
+	wg.Wait()
+}
+
 // CopyFolderFromRemote copy folder (zipping it first) to local filesystem from remote location
 func (a AmbariRegistry) CopyFolderFromRemote(component string, source string, dest string, filteredHosts map[string]bool) {
 	connectionProfileId := a.ConnectionProfile
