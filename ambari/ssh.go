@@ -108,7 +108,7 @@ func (a AmbariRegistry) CopyToRemote(source string, dest string, filteredHosts m
 			defer wg.Done()
 			err := ssh.Scp(source, dest)
 			// Handle errors
-			if (err != nil) {
+			if err != nil {
 				errMsg := fmt.Sprintf("Can't run remote command on host '%v (scp %v to %v)", host, source, dest)
 				fmt.Println(errMsg)
 			} else {
