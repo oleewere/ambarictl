@@ -53,6 +53,178 @@ var logDirMap = map[string]map[string]map[string]string{
 			"log_dir_config_property": "logfeeder_log_dir",
 		},
 	},
+	"ACCUMULO": {
+		"ACCUMULO_MASTER": {
+			"log_dir_config_type":     "accumulo-env",
+			"log_dir_config_property": "accumulo_log_dir",
+		},
+	},
+	"AMBARI_METRICS": {
+		"METRICS_COLLECTOR": {
+			"log_dir_config_type":     "ams-env",
+			"log_dir_config_property": "metrics_collector_log_dir",
+		},
+		"METRICS_MONITOR": {
+			"log_dir_config_type":     "ams-env",
+			"log_dir_config_property": "metrics_monitor_log_dir",
+		},
+		"METRICS_GRAFANA": {
+			"log_dir_config_type":     "ams-grafana-env",
+			"log_dir_config_property": "metrics_grafana_log_dir",
+		},
+	},
+	"ATLAS": {
+		"ATLAS_MASTER": {
+			"log_dir_config_type":     "atlas-env",
+			"log_dir_config_property": "metadata_log_dir",
+		},
+	},
+	"DRUID": {
+		"DRUID_BROKER": {
+			"log_dir_config_type":     "druid-env",
+			"log_dir_config_property": "druid_log_dir",
+		},
+	},
+	"HBASE": {
+		"HBASE_MASTER": {
+			"log_dir_config_type":     "hbase-env",
+			"log_dir_config_property": "hbase_log_dir",
+		},
+		"HBASE_REGIONSERVER": {
+			"log_dir_config_type":     "hbase-env",
+			"log_dir_config_property": "hbase_log_dir",
+		},
+	},
+	"HDFS": {
+		"NAMENODE": {
+			"log_dir_config_type":     "hadoop-env",
+			"log_dir_config_property": "hdfs_log_dir_prefix",
+		},
+		"DATANODE": {
+			"log_dir_config_type":     "hadoop-env",
+			"log_dir_config_property": "hdfs_log_dir_prefix",
+		},
+	},
+	"HIVE": {
+		"HIVE_METASTORE": {
+			"log_dir_config_type":     "hive-env",
+			"log_dir_config_property": "hive_log_dir",
+		},
+		"HIVE_SERVER": {
+			"log_dir_config_type":     "hive-env",
+			"log_dir_config_property": "hive_log_dir",
+		},
+		"HIVE_SERVER_INTERACTIVE": {
+			"log_dir_config_type":     "hive-env",
+			"log_dir_config_property": "hive_log_dir",
+		},
+	},
+	"KAFKA": {
+		"KAFKA_BROKER": {
+			"log_dir_config_type":     "kafka-env",
+			"log_dir_config_property": "kafka_log_dir",
+		},
+	},
+	"OOZIE": {
+		"OOZIE_SERVER": {
+			"log_dir_config_type":     "oozie-env",
+			"log_dir_config_property": "oozie_log_dir",
+		},
+	},
+	"RANGER": {
+		"RANGER_ADMIN": {
+			"log_dir_config_type":     "ranger-env",
+			"log_dir_config_property": "ranger_admin_log_dir",
+		},
+		"RANGER_USERSYNC": {
+			"log_dir_config_type":     "ranger-env",
+			"log_dir_config_property": "ranger_usersync_log_dir",
+		},
+	},
+	"RANGER_KMS": {
+		"RANGER_KMS_SERVER": {
+			"log_dir_config_type":     "kms-env",
+			"log_dir_config_property": "kms_log_dir",
+		},
+	},
+	"SPARK2": {
+		"SPARK2_JOBHISTORYSERVER": {
+			"log_dir_config_type":     "spark2-env",
+			"log_dir_config_property": "spark_log_dir",
+		},
+		"SPARK2_THRIFTSERVER": {
+			"log_dir_config_type":     "spark2-env",
+			"log_dir_config_property": "spark_log_dir",
+		},
+		"LIVY2_SERVER": {
+			"log_dir_config_type":     "livy2-env",
+			"log_dir_config_property": "livy2_log_dir",
+		},
+	},
+	"SUPERSET": {
+		"SUPERSET": {
+			"log_dir_config_type":     "superset-env",
+			"log_dir_config_property": "superset_log_dir",
+		},
+	},
+	"STORM": {
+		"NIMBUS": {
+			"log_dir_config_type":     "storm-env",
+			"log_dir_config_property": "storm_log_dir",
+		},
+		"STORM_UI_SERVER": {
+			"log_dir_config_type":     "storm-env",
+			"log_dir_config_property": "storm_log_dir",
+		},
+		"SUPERVISOR": {
+			"log_dir_config_type":     "storm-env",
+			"log_dir_config_property": "storm_log_dir",
+		},
+	},
+	"MAPREDUCE2": {
+		"HISTORYSERVER": {
+			"log_dir_config_type":     "mapred-env",
+			"log_dir_config_property": "mapred_log_dir_prefix",
+		},
+	},
+	"YARN": {
+		"APP_TIMELINE_SERVER": {
+			"log_dir_config_type":     "yarn-env",
+			"log_dir_config_property": "yarn_log_dir_prefix",
+		},
+		"RESOURCEMANAGER": {
+			"log_dir_config_type":     "yarn-env",
+			"log_dir_config_property": "yarn_log_dir_prefix",
+		},
+	},
+	"ZEPPELIN": {
+		"ZEPPELIN_MASTER": {
+			"log_dir_config_type":     "zeppelin-env",
+			"log_dir_config_property": "zeppelin_log_dir",
+		},
+	},
+	"SMARTSENSE": {
+		"HST_SERVER": {
+			"log_dir_config_type":     "hst-log4j",
+			"log_dir_config_property": "hst.log.dir",
+		},
+		"HST_AGENT": {
+			"log_dir_config_type":     "hst-log4j",
+			"log_dir_config_property": "hst.log.dir",
+		},
+	},
+	"NIFI": {
+		"NIFI_CA": {
+			"log_dir_config_type":     "nifi-env",
+			"log_dir_config_property": "nifi_node_log_dir",
+		},
+	},
+	"STREAMLINE": {
+		"STREAMLINE_SERVER": {
+			"log_dir_config_type":     "streamline-env",
+			"log_dir_config_property": "streamline_log_dir",
+		},
+	},
 }
 
 // DownloadLogs download specific logs that can be filtered by hosts, components or service (by default, it downloads agent logs)
