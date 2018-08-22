@@ -85,6 +85,11 @@ func (a AmbariRegistry) GetFilteredHosts(filter Filter) map[string]bool {
 			if ok {
 				finalHosts[agent.IP] = true
 			}
+			_, ok = hosts[agent.IP]
+			if ok {
+				finalHosts[agent.IP] = true
+			}
+
 		} else {
 			finalHosts[agent.IP] = true
 		}
