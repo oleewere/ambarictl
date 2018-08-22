@@ -26,7 +26,7 @@ func DownloadViaScp(sshConfig *easyssh.MakeConfig, source string, dest string) e
 		fmt.Print("TODO host jump!!!")
 	}
 	userAndRemote := fmt.Sprintf("%v@%v", sshConfig.User, sshConfig.Server)
-	cmd := exec.Command("scp", "-q", "-P", sshConfig.Port, "-i", sshConfig.KeyPath, userAndRemote+":"+source, dest)
+	cmd := exec.Command("scp", "-o", "StrictHostKeyChecking=no", "-q", "-P", sshConfig.Port, "-i", sshConfig.KeyPath, userAndRemote+":"+source, dest)
 	if err := cmd.Run(); err != nil {
 		return err
 	}
