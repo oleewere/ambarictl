@@ -396,7 +396,7 @@ func main() {
 				tableData = append(tableData, []string{ambariRegistry.Name, ambariRegistry.Hostname, strconv.Itoa(ambariRegistry.Port), ambariRegistry.Protocol,
 					ambariRegistry.Username, "********", ambariRegistry.Cluster, ambariRegistry.ConnectionProfile, "true"})
 			}
-			printTable("ACTIVE AMBARI REGISTRY:", []string{"Name", "HOSTNAME", "PORT", "PROTOCOL", "USER", "PASSWORD", "CLUSTER", "ACTIVE"}, tableData, c)
+			printTable("ACTIVE AMBARI REGISTRY:", []string{"Name", "HOSTNAME", "PORT", "PROTOCOL", "USER", "PASSWORD", "CLUSTER", "PROFILE", "ACTIVE"}, tableData, c)
 			return nil
 		},
 	}
