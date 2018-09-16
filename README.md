@@ -9,3 +9,9 @@
 ```bash
 make build
 ```
+
+#### Installation with Homebrew
+```bash
+brew tap oleewere/repo
+brew install ambarictl
+```
