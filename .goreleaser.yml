@@ -44,7 +44,7 @@ brew:
   github:
     owner: oleewere
     name: homebrew-repo
-  url_template: "https://github.com/oleewere/ambarictl/releases/{{ .Tag }}/{{ .ArtifactName }}"
+  #url_template: "https://github.com/oleewere/ambarictl/releases/{{ .Tag }}/{{ .ArtifactName }}"
   download_strategy: GitHubPrivateRepositoryReleaseDownloadStrategy
   commit_author:
     name: oleewere
