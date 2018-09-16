@@ -101,6 +101,8 @@ function release_and_push_new_branch() {
   local version_number=$(get_version_number $next_release)
   git tag "$next_release"
   local release_result=$(run_release)
+  git branch -D $new_branch
+  git branch $new_branch $next_release
   git push origin master
   git push origin $new_branch
 }
