@@ -1,0 +1,11 @@
+name: "Print configs"
+tasks:
+  - name: "Ambari server config"
+    ambari_server: true
+    command: "cat /etc/ambari-server/conf/ambari.properties"
+  - name: "Ambari agent configs"
+    ambari_agent: true
+    command: "cat /etc/ambari-agent/conf/ambari-agent.ini"
+  - name: "Print infra-solr-env.sh script"
+    components: INFRA_SOLR
+    command: "cat /etc/ambari-infra-solr/conf/infra-solr-env.sh"
