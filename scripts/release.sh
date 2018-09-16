@@ -101,14 +101,8 @@ function release_and_push_new_branch() {
   local version_number=$(get_version_number $next_release)
   git tag "$next_release"
   local release_result=$(run_release)
-  if [[ "$release_result" == "0" ]]; then
-    git push origin master
-    git push origin $new_branch
-  else
-    echo "Pushing release tag was unsuccessful, revert tag creation. ('$next_release')"
-    git tag -d $next_release
-    exit 1
-  fi
+  git push origin master
+  git push origin $new_branch
 }
 
 function release_and_push_actual_branch() {
@@ -117,13 +111,7 @@ function release_and_push_actual_branch() {
   local version_number=$(get_version_number $next_release)
   git tag "$next_release" -m "$next_release (patch release)"
   local release_result=$(run_release)
-  if [[ "$release_result" == "0" ]]; then
-    git push origin $actual_branch
-  else
-    echo "Pushing release tag was unsuccessful, revert tag creation. ('$next_release')"
-    git tag -d $next_release
-    exit 1
-  fi
+  git push origin $actual_branch
 }
 
 function release_major() {
