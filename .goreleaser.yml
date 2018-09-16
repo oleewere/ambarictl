@@ -39,3 +39,23 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
+brew:
+  name: ambarictl
+  github:
+    owner: oleewere
+    name: homebrew-repo
+  url_template: "https://github.com/oleewere/ambarictl/releases/{{ .Tag }}/{{ .ArtifactName }}"
+  download_strategy: GitHubPrivateRepositoryReleaseDownloadStrategy
+  commit_author:
+    name: oleewere
+    email: oleewere@gmail.com
+  folder: Formula
+  homepage: "https://github.com/oleewere"
+  description: "Software to manage multiple Ambari servers."
+  dependencies:
+    - git
+  test: |
+    system "#{bin}/ambarctl --version"
+  install: |
+    bin.install "ambarictl"
+
