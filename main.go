@@ -500,7 +500,7 @@ func main() {
 			return nil
 		},
 		Flags: []cli.Flag{
-			cli.BoolFlag{Name: "server", Usage: "Download server logs flag"},
+			cli.BoolFlag{Name: "server", Usage: "Filter on ambari-server"},
 			cli.StringFlag{Name: "services, s", Usage: "Filter on services (comma separated)"},
 			cli.StringFlag{Name: "components, c", Usage: "Filter on components (comma separated)"},
 			cli.StringFlag{Name: "hosts", Usage: "Filter on hosts (comma separated)"},
