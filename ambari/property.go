@@ -87,7 +87,6 @@ func (a AmbariRegistry) GetMinimalBlueprint(blueprint map[string]interface{}, st
 	}
 	if blueprintsVal, ok := blueprint["Blueprints"]; ok {
 		blueprintsConfigs := make(map[string]interface{})
-		fmt.Println(blueprintsVal)
 		blueprintEntries := blueprintsVal.(map[string]interface{})
 		for blueprintEntryName, blueprintEntry := range blueprintEntries {
 			if blueprintEntryName == "security" {
