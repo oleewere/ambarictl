@@ -22,7 +22,7 @@ import (
 )
 
 // RunLocalCommand run local system command
-func RunLocalCommand(command string, arg ...string) (error, string, string) {
+func RunLocalCommand(command string, arg ...string) (string, string, error) {
 	outStr, errStr := "", ""
 	cmd := exec.Command(command, arg...)
 	var stdout, stderr bytes.Buffer
@@ -35,5 +35,5 @@ func RunLocalCommand(command string, arg ...string) (error, string, string) {
 	}
 	outStr, errStr = string(stdout.Bytes()), string(stderr.Bytes())
 	fmt.Printf("out:\n%s\nerr:\n%s\n", outStr, errStr)
-	return nil, outStr, errStr
+	return outStr, errStr, nil
 }
