@@ -85,6 +85,26 @@ func (a AmbariRegistry) GetMinimalBlueprint(blueprint map[string]interface{}, st
 			blueprint["configurations"] = make([]interface{}, 0)
 		}
 	}
+	if blueprintsVal, ok := blueprint["Blueprints"]; ok {
+		blueprintsConfigs := make(map[string]interface{})
+		fmt.Println(blueprintsVal)
+		blueprintEntries := blueprintsVal.(map[string]interface{})
+		for blueprintEntryName, blueprintEntry := range blueprintEntries {
+			if blueprintEntryName == "security" {
+				minimalSecurityDetails := make(map[string]interface{})
+				securityDetails := blueprintEntry.(map[string]interface{})
+				for securitSettingsName, securityEntry := range securityDetails {
+					if securitSettingsName != "kerberos_descriptor" {
+						minimalSecurityDetails[securitSettingsName] = securityEntry
+					}
+				}
+				blueprintsConfigs[blueprintEntryName] = minimalSecurityDetails
+			} else {
+				blueprintsConfigs[blueprintEntryName] = blueprintEntry
+			}
+		}
+		blueprint["Blueprints"] = blueprintsConfigs
+	}
 	bodyBytes, err := json.Marshal(blueprint)
 	if err != nil {
 		fmt.Println(err)
