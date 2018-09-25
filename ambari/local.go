@@ -34,6 +34,11 @@ func RunLocalCommand(command string, arg ...string) (string, string, error) {
 		os.Exit(1)
 	}
 	outStr, errStr = string(stdout.Bytes()), string(stderr.Bytes())
-	fmt.Printf("out:\n%s\nerr:\n%s\n", outStr, errStr)
+	if len(outStr) > 0 {
+		fmt.Println(outStr)
+	}
+	if len(errStr) > 0 {
+		fmt.Println(errStr)
+	}
 	return outStr, errStr, nil
 }

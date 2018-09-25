@@ -19,6 +19,14 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"strings"
+)
+
+const (
+	RemoteCommand = "remote_command"
+	LocalCommand  = "local_command"
+	//Upload = "upload"
+	//Download = "download"
 )
 
 // Playbook contains an array of tasks that will be executed on ambari hosts
@@ -31,12 +39,8 @@ type Playbook struct {
 // Task represent a task that can be executed on an ambari hosts
 type Task struct {
 	Name                string `yaml:"name"`
+	Type                string `yaml:"type"`
 	Command             string `yaml:"command"`
-	Download            string `yaml:"download"`
-	Copy                string `yaml:"copy"`
-	LocalCopy           string `yaml:"local_copy"`
-	LocalCommand        string `yaml:"local_command"`
-	AmbariCommand       string `yaml:"ambari_command"`
 	HostComponentFilter string `yaml:"host_component_filter"`
 	AmbariServerFilter  bool   `yaml:"ambari_server"`
 	AmbariAgentFilter   bool   `yaml:"ambari_agent"`
@@ -66,13 +70,47 @@ func LoadPlaybookFile(location string) Playbook {
 func (a AmbariRegistry) ExecutePlaybook(playbook Playbook) {
 	tasks := playbook.Tasks
 	for _, task := range tasks {
-		if len(task.Command) > 0 {
-			if task.AmbariAgentFilter {
-				a.RunRemoteHostCommand(task.Command, nil)
-			} else {
+		if len(task.Type) > 0 {
+			filteredHosts := make(map[string]bool)
+			if !task.AmbariAgentFilter {
 				filter := CreateFilter(task.ServiceFilter, task.ComponentFilter, task.HostFilter, task.AmbariServerFilter)
-				a.RunRemoteHostCommand(task.Command, a.GetFilteredHosts(filter))
+				filteredHosts = a.GetFilteredHosts(filter)
 			}
+			if task.Type == RemoteCommand {
+				fmt.Println("Executing remote command:")
+				a.ExecuteRemoteCommandTask(task, filteredHosts)
+			}
+			if task.Type == LocalCommand {
+				fmt.Println("Executing local command:")
+				a.ExecuteLocalCommandTask(task)
+			}
+		} else {
+			if len(task.Name) > 0 {
+				fmt.Println(fmt.Sprintf("Type field for task '%s' is required!", task.Name))
+			} else {
+				fmt.Println("Type field for task is required!")
+			}
+			os.Exit(1)
+		}
+	}
+}
+
+// ExecuteRemoteCommandTask executes a remote command on filtered hosts
+func (a AmbariRegistry) ExecuteRemoteCommandTask(task Task, filteredHosts map[string]bool) {
+	if len(task.Command) > 0 {
+		a.RunRemoteHostCommand(task.Command, filteredHosts)
+	}
+}
+
+// ExecuteLocalCommandTask executes a local shell command
+func (a AmbariRegistry) ExecuteLocalCommandTask(task Task) {
+	if len(task.Command) > 0 {
+		fmt.Println("Execute local command: " + task.Command)
+		splitted := strings.Split(task.Command, " ")
+		if len(splitted) == 1 {
+			RunLocalCommand(splitted[0])
+		} else {
+			RunLocalCommand(splitted[0], splitted[1:]...)
 		}
 	}
 }

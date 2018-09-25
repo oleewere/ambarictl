@@ -2,10 +2,16 @@ name: "Print configs"
 tasks:
   - name: "Ambari server config"
     ambari_server: true
+    type: remote_command
     command: "cat /etc/ambari-server/conf/ambari.properties"
   - name: "Ambari agent configs"
+    type: remote_command
     ambari_agent: true
     command: "cat /etc/ambari-agent/conf/ambari-agent.ini"
   - name: "Print infra-solr-env.sh script"
+    type: remote_command
     components: INFRA_SOLR
     command: "cat /etc/ambari-infra-solr/conf/infra-solr-env.sh"
+  - name: "Print user home"
+    type: local_command
+    command: "cat /etc/hosts"
