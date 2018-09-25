@@ -23,10 +23,14 @@ import (
 )
 
 const (
+	// RemoteCommand remote command type for running commands on the agent hosts
 	RemoteCommand = "RemoteCommand"
-	LocalCommand  = "LocalCommand"
-	Download      = "Download"
-	Upload        = "Upload"
+	// LocalCommand local command type for running commands on localhost
+	LocalCommand = "LocalCommand"
+	// Download command type for downloading a file from an url
+	Download = "Download"
+	// Upload command type for uploading files to the agent hosts
+	Upload = "Upload"
 )
 
 // Playbook contains an array of tasks that will be executed on ambari hosts
@@ -145,7 +149,7 @@ func ExecuteLocalCommandTask(task Task) {
 	}
 }
 
-// ExecuteDownloadFileTask
+// ExecuteDownloadFileTask download a file from an url to the local filesystem
 func ExecuteDownloadFileTask(task Task) {
 	if task.Parameters != nil {
 		haveUrl := false
