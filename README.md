@@ -15,3 +15,15 @@ make build
 brew tap oleewere/repo
 brew install ambarictl
 ```
+
+#### Installation on Linux
+
+Using wget:
+```bash
+wget -qO- https://github.com/oleewere/ambarictl/releases/download/v0.1.1/ambarictl_0.1.1_linux_64-bit.tar.gz | tar -C /usr/bin -zxv ambarictl
+```
+
+Using curl:
+```bash
+curl -L -s https://github.com/oleewere/ambarictl/releases/download/v0.1.1/ambarictl_0.1.1_linux_64-bit.tar.gz | tar -C /usr/bin -xzv ambarictl
+```
