@@ -4,13 +4,9 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/oleewere/ambarictl)](https://goreportcard.com/report/github.com/oleewere/ambarictl)
 ![license](http://img.shields.io/badge/license-Apache%20v2-blue.svg)
 
-### Developement
-#### Build
-```bash
-make build
-```
+### Install
 
-#### Installation with Homebrew
+#### Installation on Mac OSX
 ```bash
 brew tap oleewere/repo
 brew install ambarictl
@@ -26,4 +22,10 @@ wget -qO- https://github.com/oleewere/ambarictl/releases/download/v0.1.1/ambaric
 Using curl:
 ```bash
 curl -L -s https://github.com/oleewere/ambarictl/releases/download/v0.1.1/ambarictl_0.1.1_linux_64-bit.tar.gz | tar -C /usr/bin -xzv ambarictl
+```
+
+### Developement
+#### Build
+```bash
+make build
 ```
