@@ -23,8 +23,9 @@ import (
 )
 
 const (
-	RemoteCommand = "remote_command"
-	LocalCommand  = "local_command"
+	RemoteCommand = "RemoteCommand"
+	LocalCommand  = "LocalCommand"
+	Download      = "Download"
 	//Upload = "upload"
 	//Download = "download"
 )
@@ -38,15 +39,16 @@ type Playbook struct {
 
 // Task represent a task that can be executed on an ambari hosts
 type Task struct {
-	Name                string `yaml:"name"`
-	Type                string `yaml:"type"`
-	Command             string `yaml:"command"`
-	HostComponentFilter string `yaml:"host_component_filter"`
-	AmbariServerFilter  bool   `yaml:"ambari_server"`
-	AmbariAgentFilter   bool   `yaml:"ambari_agent"`
-	HostFilter          string `yaml:"hosts"`
-	ServiceFilter       string `yaml:"services"`
-	ComponentFilter     string `yaml:"components"`
+	Name                string            `yaml:"name"`
+	Type                string            `yaml:"type"`
+	Command             string            `yaml:"command"`
+	HostComponentFilter string            `yaml:"host_component_filter"`
+	AmbariServerFilter  bool              `yaml:"ambari_server"`
+	AmbariAgentFilter   bool              `yaml:"ambari_agent"`
+	HostFilter          string            `yaml:"hosts"`
+	ServiceFilter       string            `yaml:"services"`
+	ComponentFilter     string            `yaml:"components"`
+	Parameters          map[string]string `yaml:"parameters,omitempty"`
 }
 
 // LoadPlaybookFile read a playbook yaml file and transform it to a Playbook object
@@ -77,12 +79,13 @@ func (a AmbariRegistry) ExecutePlaybook(playbook Playbook) {
 				filteredHosts = a.GetFilteredHosts(filter)
 			}
 			if task.Type == RemoteCommand {
-				fmt.Println("Executing remote command:")
 				a.ExecuteRemoteCommandTask(task, filteredHosts)
 			}
 			if task.Type == LocalCommand {
-				fmt.Println("Executing local command:")
-				a.ExecuteLocalCommandTask(task)
+				ExecuteLocalCommandTask(task)
+			}
+			if task.Type == Download {
+				DownloadFileFromUrl(task)
 			}
 		} else {
 			if len(task.Name) > 0 {
@@ -98,12 +101,13 @@ func (a AmbariRegistry) ExecutePlaybook(playbook Playbook) {
 // ExecuteRemoteCommandTask executes a remote command on filtered hosts
 func (a AmbariRegistry) ExecuteRemoteCommandTask(task Task, filteredHosts map[string]bool) {
 	if len(task.Command) > 0 {
+		fmt.Println("Executing remote command:" + task.Command)
 		a.RunRemoteHostCommand(task.Command, filteredHosts)
 	}
 }
 
 // ExecuteLocalCommandTask executes a local shell command
-func (a AmbariRegistry) ExecuteLocalCommandTask(task Task) {
+func ExecuteLocalCommandTask(task Task) {
 	if len(task.Command) > 0 {
 		fmt.Println("Execute local command: " + task.Command)
 		splitted := strings.Split(task.Command, " ")
@@ -111,6 +115,27 @@ func (a AmbariRegistry) ExecuteLocalCommandTask(task Task) {
 			RunLocalCommand(splitted[0])
 		} else {
 			RunLocalCommand(splitted[0], splitted[1:]...)
+		}
+	}
+}
+
+// DownloadFile
+func DownloadFileFromUrl(task Task) {
+	if task.Parameters != nil {
+		haveUrl := false
+		haveFile := false
+		if urlVal, ok := task.Parameters["url"]; ok {
+			haveUrl = true
+			if fileVal, ok := task.Parameters["file"]; ok {
+				haveFile = true
+				DownloadFile(fileVal, urlVal)
+			}
+		}
+		if !haveFile {
+			fmt.Println("'file' parameter is required for 'Download' task")
+		}
+		if !haveUrl {
+			fmt.Println("'url' parameter is required for 'Download' task")
 		}
 	}
 }

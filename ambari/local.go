@@ -17,6 +17,8 @@ package ambari
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 )
@@ -41,4 +43,23 @@ func RunLocalCommand(command string, arg ...string) (string, string, error) {
 		fmt.Println(errStr)
 	}
 	return outStr, errStr, nil
+}
+
+// DownloadFile download a file from an url to the local filesystem
+func DownloadFile(filepath string, url string) error {
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+	return nil
 }
