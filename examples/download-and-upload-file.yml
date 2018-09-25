@@ -11,3 +11,6 @@ tasks:
     parameters:
       source: migrationHelper.py
       target: /usr/lib/ambari-infra-solr-client/migrationHelper.py
+  - name: "Remove downloaded file"
+    type: LocalCommand
+    command: "rm migrationHelper.py"
