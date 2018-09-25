@@ -26,8 +26,7 @@ const (
 	RemoteCommand = "RemoteCommand"
 	LocalCommand  = "LocalCommand"
 	Download      = "Download"
-	//Upload = "upload"
-	//Download = "download"
+	Upload        = "Upload"
 )
 
 // Playbook contains an array of tasks that will be executed on ambari hosts
@@ -85,7 +84,10 @@ func (a AmbariRegistry) ExecutePlaybook(playbook Playbook) {
 				ExecuteLocalCommandTask(task)
 			}
 			if task.Type == Download {
-				DownloadFileFromUrl(task)
+				ExecuteDownloadFileTask(task)
+			}
+			if task.Type == Upload {
+				a.ExecuteUploadFileTask(task, filteredHosts)
 			}
 		} else {
 			if len(task.Name) > 0 {
@@ -106,6 +108,30 @@ func (a AmbariRegistry) ExecuteRemoteCommandTask(task Task, filteredHosts map[st
 	}
 }
 
+// ExecuteUploadFileTask upload a file to specific (filtered) hosts
+func (a AmbariRegistry) ExecuteUploadFileTask(task Task, filteredHosts map[string]bool) {
+	if task.Parameters != nil {
+		haveSourceFile := false
+		haveTargetFile := false
+		if sourceVal, ok := task.Parameters["source"]; ok {
+			haveSourceFile = true
+			if targetVal, ok := task.Parameters["target"]; ok {
+				haveTargetFile = true
+				a.CopyToRemote(sourceVal, targetVal, filteredHosts)
+			}
+		}
+		if !haveSourceFile {
+			fmt.Println("'source' parameter is required for 'Upload' task")
+			os.Exit(1)
+		}
+		if !haveTargetFile {
+			fmt.Println("'target' parameter is required for 'Upload' task")
+			os.Exit(1)
+		}
+
+	}
+}
+
 // ExecuteLocalCommandTask executes a local shell command
 func ExecuteLocalCommandTask(task Task) {
 	if len(task.Command) > 0 {
@@ -119,8 +145,8 @@ func ExecuteLocalCommandTask(task Task) {
 	}
 }
 
-// DownloadFile
-func DownloadFileFromUrl(task Task) {
+// ExecuteDownloadFileTask
+func ExecuteDownloadFileTask(task Task) {
 	if task.Parameters != nil {
 		haveUrl := false
 		haveFile := false
@@ -133,9 +159,11 @@ func DownloadFileFromUrl(task Task) {
 		}
 		if !haveFile {
 			fmt.Println("'file' parameter is required for 'Download' task")
+			os.Exit(1)
 		}
 		if !haveUrl {
 			fmt.Println("'url' parameter is required for 'Download' task")
+			os.Exit(1)
 		}
 	}
 }

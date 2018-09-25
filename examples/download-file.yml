@@ -1,7 +1,0 @@
-name: "Download python file"
-tasks:
-  - name: "Download file"
-    type: Download
-    parameters:
-      url: https://raw.githubusercontent.com/apache/ambari/release-2.7.1/ambari-infra/ambari-infra-solr-client/src/main/python/migrationHelper.py
-      file: migrationHelper.py
