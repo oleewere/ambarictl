@@ -45,6 +45,20 @@ func (a AmbariRegistry) CreatePostRequest(body bytes.Buffer, urlSuffix string, u
 		panic(err)
 	}
 	request.Header.Add("Content-Type", "application/json")
+	request.Header.Add("X-Requested-By", "ambari")
+	request.SetBasicAuth(a.Username, a.Password)
+	return request
+}
+
+// CreatePutRequest creates an Ambari PUT request with body
+func (a AmbariRegistry) CreatePutRequest(body bytes.Buffer, urlSuffix string, useCluster bool) *http.Request {
+	uri := a.GetAmbariUri(urlSuffix, useCluster)
+	request, err := http.NewRequest("PUT", uri, &body)
+	if err != nil {
+		panic(err)
+	}
+	request.Header.Add("Content-Type", "application/json")
+	request.Header.Add("X-Requested-By", "ambari")
 	request.SetBasicAuth(a.Username, a.Password)
 	return request
 }
