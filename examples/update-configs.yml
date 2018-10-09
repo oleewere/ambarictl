@@ -1,0 +1,8 @@
+name: "Update configs and restart service"
+tasks:
+  - name: "Update configs (infra-solr)"
+    type: Config
+    parameters:
+      config_type: infra-solr-log4j
+      config_key: infra_log_maxbackupindex
+      config_value: 12
