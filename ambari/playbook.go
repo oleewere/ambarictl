@@ -31,6 +31,8 @@ const (
 	Download = "Download"
 	// Upload command type for uploading files to the agent hosts
 	Upload = "Upload"
+	// Config command type is for managing (update) configuration
+	Config = "Config"
 )
 
 // Playbook contains an array of tasks that will be executed on ambari hosts
@@ -93,6 +95,9 @@ func (a AmbariRegistry) ExecutePlaybook(playbook Playbook) {
 			if task.Type == Upload {
 				a.ExecuteUploadFileTask(task, filteredHosts)
 			}
+			if task.Type == Config {
+				a.ExecuteConfigCommand(task)
+			}
 		} else {
 			if len(task.Name) > 0 {
 				fmt.Println(fmt.Sprintf("Type field for task '%s' is required!", task.Name))
@@ -104,10 +109,64 @@ func (a AmbariRegistry) ExecutePlaybook(playbook Playbook) {
 	}
 }
 
+// ExecuteConfigCommand executes a configuration upgrade
+func (a AmbariRegistry) ExecuteConfigCommand(task Task) {
+	if task.Parameters != nil {
+		haveConfigType := false
+		haveConfigKey := false
+		haveConfigValue := false
+		if configType, ok := task.Parameters["config_type"]; ok {
+			haveConfigType = true
+			if configKey, ok := task.Parameters["config_key"]; ok {
+				haveConfigKey = true
+				if configValue, ok := task.Parameters["config_value"]; ok {
+					haveConfigValue = true
+					filter := Filter{}
+					filter.Server = true
+					filteredHosts := a.GetFilteredHosts(filter)
+					versionNote := fmt.Sprintf("AMBARICTL - Update config key: %s", configKey)
+					command := fmt.Sprintf("/var/lib/ambari-server/resources/scripts/configs.py --action set -c %s -k %s -v %s "+
+						"-u %s -p %s --host=%s --cluster=%s --protocol=%s -b '%s'", configType, configKey, configValue, a.Username, a.Password,
+						a.Hostname, a.Cluster, a.Protocol, versionNote)
+					a.RunRemoteHostCommand(command, filteredHosts)
+				}
+			}
+		}
+		if !haveConfigType {
+			fmt.Println("'config_type' parameter is required for 'Upload' task")
+			os.Exit(1)
+		}
+		if !haveConfigKey {
+			fmt.Println("'config_key' parameter is required for 'Upload' task")
+			os.Exit(1)
+		}
+		if !haveConfigValue {
+			fmt.Println("'config_value' parameter is required for 'Upload' task")
+			os.Exit(1)
+		}
+	}
+}
+
 // ExecuteRemoteCommandTask executes a remote command on filtered hosts
 func (a AmbariRegistry) ExecuteRemoteCommandTask(task Task, filteredHosts map[string]bool) {
 	if len(task.Command) > 0 {
-		fmt.Println("Executing remote command:" + task.Command)
+		haveSourceFile := false
+		haveTargetFile := false
+		if sourceVal, ok := task.Parameters["source"]; ok {
+			haveSourceFile = true
+			if targetVal, ok := task.Parameters["target"]; ok {
+				haveTargetFile = true
+				a.CopyToRemote(sourceVal, targetVal, filteredHosts)
+			}
+		}
+		if !haveSourceFile {
+			fmt.Println("'source' parameter is required for 'Upload' task")
+			os.Exit(1)
+		}
+		if !haveTargetFile {
+			fmt.Println("'target' parameter is required for 'Upload' task")
+			os.Exit(1)
+		}
 		a.RunRemoteHostCommand(task.Command, filteredHosts)
 	}
 }
