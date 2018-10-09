@@ -49,13 +49,7 @@ func (a AmbariRegistry) RunRemoteHostCommand(command string, filteredHosts map[s
 	var wg sync.WaitGroup
 	wg.Add(len(hosts))
 	for host := range hosts {
-		ssh := &easyssh.MakeConfig{
-			User:    connectionProfile.Username,
-			Server:  host,
-			KeyPath: connectionProfile.KeyPath,
-			Port:    strconv.Itoa(connectionProfile.Port),
-			Timeout: 60 * time.Second,
-		}
+		ssh := createSshConfig(connectionProfile, host)
 		go func(ssh *easyssh.MakeConfig, command string, host string, response map[string]RemoteResponse) {
 			defer wg.Done()
 			stdout, stderr, done, err := ssh.Run(command, 60)
@@ -97,13 +91,7 @@ func (a AmbariRegistry) CopyToRemote(source string, dest string, filteredHosts m
 	var wg sync.WaitGroup
 	wg.Add(len(hosts))
 	for host := range hosts {
-		ssh := &easyssh.MakeConfig{
-			User:    connectionProfile.Username,
-			Server:  host,
-			KeyPath: connectionProfile.KeyPath,
-			Port:    strconv.Itoa(connectionProfile.Port),
-			Timeout: 60 * time.Second,
-		}
+		ssh := createSshConfig(connectionProfile, host)
 		go func(ssh *easyssh.MakeConfig, source string, dest string, host string) {
 			defer wg.Done()
 			err := ssh.Scp(source, dest)
@@ -128,13 +116,7 @@ func (a AmbariRegistry) CopyFromRemote(source string, dest string, host string) 
 		os.Exit(1)
 	}
 	connectionProfile := GetConnectionProfileById(connectionProfileId)
-	ssh := &easyssh.MakeConfig{
-		User:    connectionProfile.Username,
-		Server:  host,
-		KeyPath: connectionProfile.KeyPath,
-		Port:    strconv.Itoa(connectionProfile.Port),
-		Timeout: 60 * time.Second,
-	}
+	ssh := createSshConfig(connectionProfile, host)
 	err := DownloadViaScp(ssh, source, dest)
 	if err != nil {
 		fmt.Println(err)
@@ -159,13 +141,7 @@ func (a AmbariRegistry) CopyFromRemoteHosts(source string, dest string, filtered
 	var wg sync.WaitGroup
 	wg.Add(len(hosts))
 	for host := range hosts {
-		ssh := &easyssh.MakeConfig{
-			User:    connectionProfile.Username,
-			Server:  host,
-			KeyPath: connectionProfile.KeyPath,
-			Port:    strconv.Itoa(connectionProfile.Port),
-			Timeout: 60 * time.Second,
-		}
+		ssh := createSshConfig(connectionProfile, host)
 		go func(ssh *easyssh.MakeConfig, source string, dest string, host string) {
 			defer wg.Done()
 			hostFolder := path.Join(dest, host)
@@ -198,13 +174,7 @@ func (a AmbariRegistry) CopyFolderFromRemote(component string, source string, de
 	var wg sync.WaitGroup
 	wg.Add(len(hosts))
 	for host := range hosts {
-		ssh := &easyssh.MakeConfig{
-			User:    connectionProfile.Username,
-			Server:  host,
-			KeyPath: connectionProfile.KeyPath,
-			Port:    strconv.Itoa(connectionProfile.Port),
-			Timeout: 60 * time.Second,
-		}
+		ssh := createSshConfig(connectionProfile, host)
 		go func(ssh *easyssh.MakeConfig, component string, source string, dest string, host string) {
 			defer wg.Done()
 			tmpSource := fmt.Sprintf("/tmp/%v.tar.gz", component)
@@ -231,4 +201,31 @@ func (a AmbariRegistry) CopyFolderFromRemote(component string, source string, de
 		}(ssh, component, source, dest, host)
 	}
 	wg.Wait()
+}
+
+func createSshConfig(connectionProfile ConnectionProfile, host string) *easyssh.MakeConfig {
+	if len(connectionProfile.ProxyAddress) > 0 {
+		return &easyssh.MakeConfig{
+			User:    connectionProfile.Username,
+			Server:  host,
+			KeyPath: connectionProfile.KeyPath,
+			Port:    strconv.Itoa(connectionProfile.Port),
+			Timeout: 60 * time.Second,
+			Proxy: easyssh.DefaultConfig{
+				User:    connectionProfile.Username,
+				Server:  connectionProfile.ProxyAddress,
+				Port:    strconv.Itoa(connectionProfile.Port),
+				KeyPath: connectionProfile.KeyPath,
+				Timeout: 60 * time.Second,
+			},
+		}
+	} else {
+		return &easyssh.MakeConfig{
+			User:    connectionProfile.Username,
+			Server:  host,
+			KeyPath: connectionProfile.KeyPath,
+			Port:    strconv.Itoa(connectionProfile.Port),
+			Timeout: 60 * time.Second,
+		}
+	}
 }
