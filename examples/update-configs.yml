@@ -5,4 +5,8 @@ tasks:
     parameters:
       config_type: infra-solr-log4j
       config_key: infra_log_maxbackupindex
-      config_value: 12
+      config_value: 13
+  - name: "Restart Infra Solr components"
+    type: AmbariCommand
+    command: RESTART
+    components: INFRA_SOLR
