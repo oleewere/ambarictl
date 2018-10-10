@@ -148,14 +148,7 @@ func (a AmbariRegistry) ExecuteConfigCommand(task Task) {
 				haveConfigKey = true
 				if configValue, ok := task.Parameters["config_value"]; ok {
 					haveConfigValue = true
-					filter := Filter{}
-					filter.Server = true
-					filteredHosts := a.GetFilteredHosts(filter)
-					versionNote := fmt.Sprintf("AMBARICTL - Update config key: %s", configKey)
-					command := fmt.Sprintf("/var/lib/ambari-server/resources/scripts/configs.py --action set -c %s -k %s -v %s "+
-						"-u %s -p %s --host=%s --cluster=%s --protocol=%s -b '%s'", configType, configKey, configValue, a.Username, a.Password,
-						a.Hostname, a.Cluster, a.Protocol, versionNote)
-					a.RunRemoteHostCommand(command, filteredHosts)
+					a.SetConfig(configType, configKey, configValue)
 				}
 			}
 		}

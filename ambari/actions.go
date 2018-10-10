@@ -96,6 +96,18 @@ func (a AmbariRegistry) GetStackDefaultConfigs(stack string, version string) map
 	return ambariItems.ConvertResponse().StackConfigs
 }
 
+// SetConfig sets a config value for a specific config key of a config type
+func (a AmbariRegistry) SetConfig(configType string, configKey string, configValue string) {
+	filter := Filter{}
+	filter.Server = true
+	filteredHosts := a.GetFilteredHosts(filter)
+	versionNote := fmt.Sprintf("AMBARICTL - Update config key: %s", configKey)
+	command := fmt.Sprintf("/var/lib/ambari-server/resources/scripts/configs.py --action set -c %s -k %s -v %s "+
+		"-u %s -p %s --host=%s --cluster=%s --protocol=%s -b '%s'", configType, configKey, configValue, a.Username, a.Password,
+		a.Hostname, a.Cluster, a.Protocol, versionNote)
+	a.RunRemoteHostCommand(command, filteredHosts)
+}
+
 // RunAmbariServiceCommand start / stop / restart Ambari services or components
 func (a AmbariRegistry) RunAmbariServiceCommand(command string, filter Filter, useServiceFilter bool, useComponentFilter bool) {
 	command = strings.ToUpper(command)

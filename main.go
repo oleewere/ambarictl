@@ -420,6 +420,32 @@ func main() {
 				},
 			},
 			{
+				Name:  "update",
+				Usage: "Update config value for a specific config key of a config type",
+				Action: func(c *cli.Context) error {
+					ambariRegistry := ambari.GetActiveAmbari()
+					if len(c.String("config-type")) == 0 {
+						fmt.Println("Parameter '--config-type' is required")
+						os.Exit(1)
+					}
+					if len(c.String("config-key")) == 0 {
+						fmt.Println("Parameter '--config-key' is required")
+						os.Exit(1)
+					}
+					if len(c.String("config-value")) == 0 {
+						fmt.Println("Parameter '--config-value' is required")
+						os.Exit(1)
+					}
+					ambariRegistry.SetConfig(c.String("type"), c.String("key"), c.String("value"))
+					return nil
+				},
+				Flags: []cli.Flag{
+					cli.StringFlag{Name: "type, t", Usage: "Configuration type"},
+					cli.StringFlag{Name: "key, k", Usage: "Configuration key"},
+					cli.StringFlag{Name: "value, v", Usage: "Configuration value"},
+				},
+			},
+			{
 				Name:  "export",
 				Usage: "Export cluster configuration to a blueprint json",
 				Action: func(c *cli.Context) error {
