@@ -50,10 +50,7 @@ brew:
   folder: Formula
   homepage: "https://github.com/oleewere"
   description: "Software to manage multiple Ambari servers."
-  dependencies:
-    - git
   test: |
     system "#{bin}/ambarctl --version"
   install: |
     bin.install "ambarictl"
-
