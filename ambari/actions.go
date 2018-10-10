@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -93,6 +94,45 @@ func (a AmbariRegistry) GetStackDefaultConfigs(stack string, version string) map
 	request := a.CreateGetRequest(uriSuffix, false)
 	ambariItems := ProcessAmbariItems(request)
 	return ambariItems.ConvertResponse().StackConfigs
+}
+
+// RunAmbariServiceCommand start / stop / restart Ambari services or components
+func (a AmbariRegistry) RunAmbariServiceCommand(command string, filter Filter, useServiceFilter bool, useComponentFilter bool) {
+	command = strings.ToUpper(command)
+	if command == "START" {
+		if useComponentFilter {
+			for _, component := range filter.Components {
+				a.StartComponent(component)
+			}
+		} else if useServiceFilter {
+			for _, component := range filter.Services {
+				a.StartService(component)
+			}
+		}
+	} else if command == "STOP" {
+		if useComponentFilter {
+			for _, component := range filter.Components {
+				a.StopComponent(component)
+			}
+		} else if useServiceFilter {
+			for _, component := range filter.Services {
+				a.StartService(component)
+			}
+		}
+	} else if command == "RESTART" {
+		if useComponentFilter {
+			for _, component := range filter.Components {
+				a.RestartComponent(component)
+			}
+		} else if useServiceFilter {
+			for _, component := range filter.Components {
+				a.RestartService(component)
+			}
+		}
+	} else {
+		fmt.Println("Only START/STOP/RESTART operations are supported.")
+		os.Exit(1)
+	}
 }
 
 // StartService starting an ambari service

@@ -507,6 +507,37 @@ func main() {
 		},
 	}
 
+	commandCommand := cli.Command{
+		Name:  "command",
+		Usage: "Execute ambari commands on Ambari server (START/STOP/RESTART)",
+		Action: func(c *cli.Context) error {
+			ambariServer := ambari.GetActiveAmbari()
+			args := c.Args()
+			command := ""
+			for _, arg := range args {
+				command += arg
+			}
+			if len(c.String("services")) == 0 && len(c.String("components")) == 0 {
+				fmt.Println("It is required to provide --components (-c) or --services (-s) flag")
+				os.Exit(1)
+			}
+			filter := ambari.CreateFilter(strings.ToUpper(c.String("services")),
+				strings.ToUpper(c.String("components")), "", false)
+			ambariServer.RunAmbariServiceCommand(command, filter, len(filter.Services) > 0, len(filter.Components) > 0)
+			if len(c.String("components")) > 0 {
+				fmt.Println(fmt.Sprintf("Command %s has been sent to %s (components)"), command, c.String("components"))
+			} else if len(c.String("services")) > 0 {
+				fmt.Println(fmt.Sprintf("Command %s has been sent to %s (services)"), command, c.String("services"))
+			}
+
+			return nil
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "services, s", Usage: "Filter on services (comma separated)"},
+			cli.StringFlag{Name: "components, c", Usage: "Filter on components (comma separated)"},
+		},
+	}
+
 	playbookCommand := cli.Command{
 		Name:  "playbook",
 		Usage: "Execute a list of commands defined in playbook file(s)",
@@ -554,6 +585,7 @@ func main() {
 	app.Commands = append(app.Commands, useCommand)
 	app.Commands = append(app.Commands, showCommand)
 	app.Commands = append(app.Commands, runCommand)
+	app.Commands = append(app.Commands, commandCommand)
 	app.Commands = append(app.Commands, playbookCommand)
 	app.Commands = append(app.Commands, profileCommand)
 	app.Commands = append(app.Commands, attachCommand)

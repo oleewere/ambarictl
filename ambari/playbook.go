@@ -125,47 +125,13 @@ func (a AmbariRegistry) ExecuteAmbariCommand(task Task) {
 			useServiceFilter = true
 		}
 
-		if task.Command == "START" {
-			if useComponentFilter {
-				filter := CreateFilter("", task.ComponentFilter, "", false)
-				for _, component := range filter.Components {
-					a.StartComponent(component)
-				}
-			}
-			if useServiceFilter {
-				filter := CreateFilter(task.ServiceFilter, "", "", false)
-				for _, service := range filter.Services {
-					a.StartService(service)
-				}
-			}
+		if useComponentFilter {
+			filter := CreateFilter("", task.ComponentFilter, "", false)
+			a.RunAmbariServiceCommand(task.Command, filter, useServiceFilter, useComponentFilter)
 		}
-		if task.Command == "STOP" {
-			if useComponentFilter {
-				filter := CreateFilter("", task.ComponentFilter, "", false)
-				for _, component := range filter.Components {
-					a.StopComponent(component)
-				}
-			}
-			if useServiceFilter {
-				filter := CreateFilter(task.ServiceFilter, "", "", false)
-				for _, service := range filter.Services {
-					a.StopService(service)
-				}
-			}
-		}
-		if task.Command == "RESTART" {
-			if useComponentFilter {
-				filter := CreateFilter("", task.ComponentFilter, "", false)
-				for _, component := range filter.Components {
-					a.RestartComponent(component)
-				}
-			}
-			if useServiceFilter {
-				filter := CreateFilter(task.ServiceFilter, "", "", false)
-				for _, service := range filter.Services {
-					a.RestartService(service)
-				}
-			}
+		if useServiceFilter {
+			filter := CreateFilter(task.ServiceFilter, "", "", false)
+			a.RunAmbariServiceCommand(task.Command, filter, useServiceFilter, useComponentFilter)
 		}
 	}
 }
