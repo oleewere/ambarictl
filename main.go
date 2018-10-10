@@ -525,9 +525,9 @@ func main() {
 				strings.ToUpper(c.String("components")), "", false)
 			ambariServer.RunAmbariServiceCommand(command, filter, len(filter.Services) > 0, len(filter.Components) > 0)
 			if len(c.String("components")) > 0 {
-				fmt.Println(fmt.Sprintf("Command %s has been sent to %s (components)"), command, c.String("components"))
+				fmt.Println(fmt.Sprintf("Command %s has been sent to %s (components)", command, c.String("components")))
 			} else if len(c.String("services")) > 0 {
-				fmt.Println(fmt.Sprintf("Command %s has been sent to %s (services)"), command, c.String("services"))
+				fmt.Println(fmt.Sprintf("Command %s has been sent to %s (services)", command, c.String("services")))
 			}
 
 			return nil
