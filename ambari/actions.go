@@ -15,8 +15,10 @@
 package ambari
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // ListAgents get all the registered hosts
@@ -91,4 +93,90 @@ func (a AmbariRegistry) GetStackDefaultConfigs(stack string, version string) map
 	request := a.CreateGetRequest(uriSuffix, false)
 	ambariItems := ProcessAmbariItems(request)
 	return ambariItems.ConvertResponse().StackConfigs
+}
+
+// StartService starting an ambari service
+func (a AmbariRegistry) StartService(service string) []byte {
+	request := a.serviceOperation(service, "STARTED", fmt.Sprintf("Start service (%s) by ambarictl", service))
+	return ProcessRequest(request)
+}
+
+// StopService stopping an ambari service
+func (a AmbariRegistry) StopService(service string) []byte {
+	request := a.serviceOperation(service, "INSTALLED", fmt.Sprintf("Stop service (%s) by ambarictl", service))
+	return ProcessRequest(request)
+}
+
+// RestartService restarting an ambari service
+func (a AmbariRegistry) RestartService(service string) {
+	a.StopService(service)
+	a.StartService(service)
+}
+
+// StartComponent start an ambari component of a service
+func (a AmbariRegistry) StartComponent(component string) []byte {
+	request := a.componentOperation(component, "START", fmt.Sprintf("Start component (%s) by ambarictl", component))
+	return ProcessRequest(request)
+}
+
+// StopComponent stop an ambari component of a service
+func (a AmbariRegistry) StopComponent(component string) []byte {
+	request := a.componentOperation(component, "STOP", fmt.Sprintf("Stop component (%s) by ambarictl", component))
+	return ProcessRequest(request)
+}
+
+// RestartComponent restarts an ambari component of a service
+func (a AmbariRegistry) RestartComponent(component string) []byte {
+	request := a.componentOperation(component, "RESTART", fmt.Sprintf("Restart component (%s) by ambarictl", component))
+	return ProcessRequest(request)
+}
+
+func getServiceNameForComponent(searchComponent string, components []Component) string {
+	result := ""
+	for _, component := range components {
+		if component.ComponentName == searchComponent {
+			return component.ServiceName
+		}
+	}
+	return result
+}
+
+func (a AmbariRegistry) serviceOperation(service string, state string, context string) *http.Request {
+	uriSuffix := fmt.Sprintf("services/%s", service)
+	var bodyBytes bytes.Buffer
+	jsonStr := fmt.Sprintf(`{"RequestInfo": {"context" : "%s"}, "Body": {"ServiceInfo": {"state": "%s"}}}`, context, state)
+	bodyBytes.WriteString(jsonStr)
+	return a.CreatePutRequest(bodyBytes, uriSuffix, true)
+}
+
+func (a AmbariRegistry) componentOperation(component string, operation string, context string) *http.Request {
+	components := a.ListComponents()
+	service := getServiceNameForComponent(component, components)
+	hostComponents := a.ListHostComponents(component, false)
+	hosts := ""
+	for _, hostComponent := range hostComponents {
+		hosts += hostComponent.HostComponntHost + ","
+	}
+	hosts = strings.TrimSuffix(hosts, ",")
+	uriSuffix := "requests"
+	var bodyBytes bytes.Buffer
+	jsonStr := fmt.Sprintf(`{
+  "RequestInfo": {
+    "command": "%s",
+    "context": "%s",
+    "operation_level": {
+      "level": "HOST_COMPONENT",
+      "cluster_name": "%s"
+    }
+  },
+  "Requests/resource_filters": [
+    {
+      "service_name": "%s",
+      "component_name": "%s",
+      "hosts": "%s"
+    }
+  ]
+}`, operation, context, a.Cluster, service, component, hosts)
+	bodyBytes.WriteString(jsonStr)
+	return a.CreatePostRequest(bodyBytes, uriSuffix, true)
 }

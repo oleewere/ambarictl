@@ -44,7 +44,7 @@ func (a AmbariRegistry) CreatePostRequest(body bytes.Buffer, urlSuffix string, u
 	if err != nil {
 		panic(err)
 	}
-	request.Header.Add("Content-Type", "application/json")
+	//request.Header.Add("Content-Type", "application/json")
 	request.Header.Add("X-Requested-By", "ambari")
 	request.SetBasicAuth(a.Username, a.Password)
 	return request
@@ -57,7 +57,6 @@ func (a AmbariRegistry) CreatePutRequest(body bytes.Buffer, urlSuffix string, us
 	if err != nil {
 		panic(err)
 	}
-	request.Header.Add("Content-Type", "application/json")
 	request.Header.Add("X-Requested-By", "ambari")
 	request.SetBasicAuth(a.Username, a.Password)
 	return request

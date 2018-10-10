@@ -33,6 +33,8 @@ const (
 	Upload = "Upload"
 	// Config command type is for managing (update) configuration
 	Config = "Config"
+	// AmbariCommand runs an ambari command (like START or STOP) against components or services
+	AmbariCommand = "AmbariCommand"
 )
 
 // Playbook contains an array of tasks that will be executed on ambari hosts
@@ -98,6 +100,9 @@ func (a AmbariRegistry) ExecutePlaybook(playbook Playbook) {
 			if task.Type == Config {
 				a.ExecuteConfigCommand(task)
 			}
+			if task.Type == AmbariCommand {
+				a.ExecuteAmbariCommand(task)
+			}
 		} else {
 			if len(task.Name) > 0 {
 				fmt.Println(fmt.Sprintf("Type field for task '%s' is required!", task.Name))
@@ -105,6 +110,62 @@ func (a AmbariRegistry) ExecutePlaybook(playbook Playbook) {
 				fmt.Println("Type field for task is required!")
 			}
 			os.Exit(1)
+		}
+	}
+}
+
+// ExecuteAmbariCommand executes an ambari command against services or components
+func (a AmbariRegistry) ExecuteAmbariCommand(task Task) {
+	if len(task.Command) > 0 {
+		useComponentFilter := false
+		useServiceFilter := false
+		if len(task.ComponentFilter) > 0 {
+			useComponentFilter = true
+		} else if len(task.ServiceFilter) > 0 {
+			useServiceFilter = true
+		}
+
+		if task.Command == "START" {
+			if useComponentFilter {
+				filter := CreateFilter("", task.ComponentFilter, "", false)
+				for _, component := range filter.Components {
+					a.StartComponent(component)
+				}
+			}
+			if useServiceFilter {
+				filter := CreateFilter(task.ServiceFilter, "", "", false)
+				for _, service := range filter.Services {
+					a.StartService(service)
+				}
+			}
+		}
+		if task.Command == "STOP" {
+			if useComponentFilter {
+				filter := CreateFilter("", task.ComponentFilter, "", false)
+				for _, component := range filter.Components {
+					a.StopComponent(component)
+				}
+			}
+			if useServiceFilter {
+				filter := CreateFilter(task.ServiceFilter, "", "", false)
+				for _, service := range filter.Services {
+					a.StopService(service)
+				}
+			}
+		}
+		if task.Command == "RESTART" {
+			if useComponentFilter {
+				filter := CreateFilter("", task.ComponentFilter, "", false)
+				for _, component := range filter.Components {
+					a.RestartComponent(component)
+				}
+			}
+			if useServiceFilter {
+				filter := CreateFilter(task.ServiceFilter, "", "", false)
+				for _, service := range filter.Services {
+					a.RestartService(service)
+				}
+			}
 		}
 	}
 }
