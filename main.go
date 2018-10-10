@@ -310,7 +310,7 @@ func main() {
 			}
 			username := strings.ToLower(ambari.GetStringFlag(c.String("username"), "admin", "Enter ambari user"))
 			password := ambari.GetPassword(c.String("password"), "Enter ambari user password")
-			cluster := strings.ToLower(ambari.GetStringFlag(c.String("cluster"), "", "Enter ambari cluster"))
+			cluster := ambari.GetStringFlag(c.String("cluster"), "", "Enter ambari cluster")
 
 			ambari.DeactiveAllAmbariRegistry()
 			ambari.RegisterNewAmbariEntry(name, host, port, protocol,
