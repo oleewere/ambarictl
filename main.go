@@ -45,6 +45,9 @@ func main() {
 	} else {
 		app.Version = "0.1.0"
 	}
+	if len(GitRevString) > 0 {
+		app.Version = app.Version + fmt.Sprintf(" (git short hash: %v)", GitRevString)
+	}
 
 	app.Commands = []cli.Command{}
 	initCommand := cli.Command{
