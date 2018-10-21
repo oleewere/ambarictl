@@ -65,7 +65,7 @@ func main() {
 			var tableData [][]string
 			for _, ambariServer := range ambariServerEntries {
 				activeValue := "false"
-				if ambariServer.Active == 1 {
+				if ambariServer.Active {
 					activeValue = "true"
 				}
 				tableData = append(tableData, []string{ambariServer.Name, ambariServer.Hostname, strconv.Itoa(ambariServer.Port), ambariServer.Protocol,
@@ -100,9 +100,9 @@ func main() {
 					}
 					userName := ambari.GetStringFlag(c.String("username"), "root", "Enter ssh username")
 					hostJumpStr := ambari.GetStringFlag(c.String("host_jump"), "n", "Use host jump?")
-					hostJump := ambari.EvaluateBoolValueAsInt(hostJumpStr)
+					hostJump := ambari.EvaluateBoolValueFromString(hostJumpStr)
 					proxyAddress := ""
-					if hostJump == 1 {
+					if hostJump {
 						proxyAddress = ambari.GetStringFlag(c.String("proxy_address"), "none", "Set a proxy address?")
 						if proxyAddress == "none" {
 							proxyAddress = ""
@@ -130,7 +130,7 @@ func main() {
 					var tableData [][]string
 					for _, profile := range connectionProfiles {
 						hostJump := "false"
-						if profile.HostJump == 1 {
+						if profile.HostJump {
 							hostJump = "true"
 						}
 						tableData = append(tableData, []string{profile.Name, profile.KeyPath, strconv.Itoa(profile.Port), profile.Username, hostJump, profile.ProxyAddress})

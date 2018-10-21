@@ -72,13 +72,13 @@ func GetPassword(flagValue string, text string) string {
 	return flagValue
 }
 
-// EvaluateBoolValueAsInt get a string boolean answer and evaluate an int (0: false, 1:true)
-func EvaluateBoolValueAsInt(answer string) int {
+// EvaluateBoolValueFromString get a string boolean answer and evaluate as a boolean value
+func EvaluateBoolValueFromString(answer string) bool {
 	trueAnswerList := []string{"y", "yes", "true", "1"}
-	result := 0
+	result := false
 	for _, v := range trueAnswerList {
 		if v == strings.ToLower(answer) {
-			result = 1
+			result = true
 		}
 	}
 	return result

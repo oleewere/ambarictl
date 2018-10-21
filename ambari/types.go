@@ -16,25 +16,25 @@ package ambari
 
 // AmbariRegistry represents registered ambari server entry details
 type AmbariRegistry struct {
-	Name              string
-	Hostname          string
-	Port              int
-	Username          string
-	Password          string
-	Protocol          string
-	Cluster           string
-	Active            int
-	ConnectionProfile string
+	Name              string `json:"name"`
+	Hostname          string `json:"hostname"`
+	Port              int    `json:"port"`
+	Username          string `json:"username"`
+	Password          string `json:"password"`
+	Protocol          string `json:"protocol"`
+	Cluster           string `json:"cluster"`
+	Active            bool   `json:"active"`
+	ConnectionProfile string `json:"profile"`
 }
 
 // ConnectionProfile represents ssh/connection descriptions which is used to communicate with Ambari server and agents
 type ConnectionProfile struct {
-	Name         string
-	KeyPath      string
-	Port         int
-	Username     string
-	HostJump     int
-	ProxyAddress string
+	Name         string `json:"name"`
+	KeyPath      string `json:"key_path"`
+	Port         int    `json:"port"`
+	Username     string `json:"username"`
+	HostJump     bool   `json:"host_jump"`
+	ProxyAddress string `json:"proxy_address"`
 }
 
 // AmbariItems global items from Ambari rest API response

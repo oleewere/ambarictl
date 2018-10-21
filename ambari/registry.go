@@ -15,131 +15,96 @@
 package ambari
 
 import (
-	"database/sql"
+	"bytes"
+	"encoding/json"
 	"fmt"
-	"github.com/mattn/go-sqlite3"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
-	"strconv"
+)
+
+const (
+	ambariServerJsonFileName       = "ambari_servers.json"
+	connectionProfilesJsonFileName = "connection_profiles.json"
 )
 
 // CreateAmbariRegistryDb initialize ambarictl database
 func CreateAmbariRegistryDb() {
-	db, err := getDb()
-	checkErr(err)
-	defer db.Close()
-	statement, err := db.Prepare("CREATE TABLE IF NOT EXISTS connection_profile (id VARCHAR PRIMARY KEY, port INTEGER, key_path VARCHAR, username VARCHAR, host_jump INTEGER, proxy_address VARCHAR)")
-	checkErr(err)
-	_, connProfErr := statement.Exec()
-	checkErr(connProfErr)
-	statement, err = db.Prepare("CREATE TABLE IF NOT EXISTS ambari_registry (id VARCHAR PRIMARY KEY, hostname VARCHAR, port INTEGER, protocol VARCHAR, username VARCHAR, password VARCHAR, cluster TEXT, active INTEGER, connection_profile VARCHAR DEFAULT '' REFERENCES connection_profile(id) ON DELETE SET DEFAULT)")
-	checkErr(err)
-	_, regErr := statement.Exec()
-	checkErr(regErr)
+	ambariServerJsonFile := getJsonDbFile(ambariServerJsonFileName)
+	connectionProfileJsonFile := getJsonDbFile(connectionProfilesJsonFileName)
+	if !exists(ambariServerJsonFile) {
+		ambariServerRegistries := make([]AmbariRegistry, 0)
+		ambariServerJson, _ := json.Marshal(ambariServerRegistries)
+		err := ioutil.WriteFile(ambariServerJsonFile, ambariServerJson, 0644)
+		checkErr(err)
+	}
+	if !exists(connectionProfileJsonFile) {
+		connectionProfiles := make([]ConnectionProfile, 0)
+		connectionProfilesJson, _ := json.Marshal(connectionProfiles)
+		err := ioutil.WriteFile(connectionProfileJsonFile, connectionProfilesJson, 0644)
+		checkErr(err)
+	}
 }
 
 // DropAmbariRegistryRecords drop all ambari server entries from ambarictl database
 func DropAmbariRegistryRecords() {
-	db, err := getDb()
-	checkErr(err)
-	defer db.Close()
-	statement, err := db.Prepare("DELETE from ambari_registry")
-	checkErr(err)
-	statement.Exec()
+	ambariServerRegistries := make([]AmbariRegistry, 0)
+	WriteAmbariServerEntries(ambariServerRegistries)
 }
 
 // DropConnectionProfileRecords drop all connection profile from ambarictl database
 func DropConnectionProfileRecords() {
-	db, err := getDb()
-	checkErr(err)
-	defer db.Close()
-	statement, err := db.Prepare("DELETE from connection_profile")
-	checkErr(err)
-	statement.Exec()
-	statement, err = db.Prepare("UPDATE ambari_registry SET connection_profile=''")
-	checkErr(err)
-	statement.Exec()
+	connectionProfiles := make([]ConnectionProfile, 0)
+	WriteConnectionProfileEntries(connectionProfiles)
 }
 
 // ListAmbariRegistryEntries get all ambari registries from ambarictl database
 func ListAmbariRegistryEntries() []AmbariRegistry {
-	db, err := getDb()
+	ambariServerJsonFile := getJsonDbFile(ambariServerJsonFileName)
+	file, err := ioutil.ReadFile(ambariServerJsonFile)
 	checkErr(err)
-	defer db.Close()
-	rows, err := db.Query("SELECT id,hostname,port,protocol,username,password,cluster,active,connection_profile FROM ambari_registry")
-	checkErr(err)
-	var id string
-	var hostname string
-	var port int
-	var protocol string
-	var username string
-	var password string
-	var cluster string
-	var active int
-	var connectionProfile string
-	var ambariRegistries []AmbariRegistry
-	for rows.Next() {
-		rows.Scan(&id, &hostname, &port, &protocol, &username, &password, &cluster, &active, &connectionProfile)
-		ambariRegistry := AmbariRegistry{Name: id, Hostname: hostname, Port: port, Protocol: protocol,
-			Username: username, Password: password, Cluster: cluster, Active: active, ConnectionProfile: connectionProfile}
-		ambariRegistries = append(ambariRegistries, ambariRegistry)
-	}
-	rows.Close()
+	ambariRegistries := make([]AmbariRegistry, 0)
+	json.Unmarshal(file, &ambariRegistries)
 	return ambariRegistries
 }
 
 // ListConnectionProfileEntries get all ambari registries from ambarictl database
 func ListConnectionProfileEntries() []ConnectionProfile {
-	db, err := getDb()
+	connectionProfileJsonFile := getJsonDbFile(connectionProfilesJsonFileName)
+	file, err := ioutil.ReadFile(connectionProfileJsonFile)
 	checkErr(err)
-	defer db.Close()
-	rows, err := db.Query("SELECT id,port,key_path,username,host_jump,proxy_address FROM connection_profile")
-	checkErr(err)
-	var id string
-	var keyPath string
-	var port int
-	var username string
-	var hostJump int
-	var proxyAddress string
-	var connectionProfiles []ConnectionProfile
-	for rows.Next() {
-		rows.Scan(&id, &port, &keyPath, &username, &hostJump, &proxyAddress)
-		connectionProfile := ConnectionProfile{Name: id, KeyPath: keyPath, Port: port, Username: username, HostJump: hostJump, ProxyAddress: proxyAddress}
-		connectionProfiles = append(connectionProfiles, connectionProfile)
-	}
-	rows.Close()
+	connectionProfiles := make([]ConnectionProfile, 0)
+	json.Unmarshal(file, &connectionProfiles)
 	return connectionProfiles
 }
 
 // GetAmbariEntryId get ambari entry id if the id exists
 func GetAmbariEntryId(id string) string {
-	db, err := getDb()
-	checkErr(err)
-	defer db.Close()
-	rows, err := db.Query("SELECT id FROM ambari_registry WHERE id = '" + id + "'")
-	checkErr(err)
-	var ambariEntryId string
-	for rows.Next() {
-		rows.Scan(&ambariEntryId)
+	ambariEntries := ListAmbariRegistryEntries()
+	ambariEntryId := ""
+	if len(ambariEntries) > 0 {
+		for _, ambariEntry := range ambariEntries {
+			if ambariEntry.Name == id {
+				ambariEntryId = ambariEntry.Name
+			}
+		}
 	}
-	rows.Close()
 	return ambariEntryId
 }
 
 // GetConnectionProfileEntryId get connection profile entry id if the id exists
 func GetConnectionProfileEntryId(id string) string {
-	db, err := getDb()
-	checkErr(err)
-	defer db.Close()
-	rows, err := db.Query("SELECT id FROM connection_profile WHERE id = '" + id + "'")
-	checkErr(err)
-	var connProfileId string
-	for rows.Next() {
-		rows.Scan(&connProfileId)
+	connectionProfiles := ListConnectionProfileEntries()
+	connectionProfileId := ""
+	if len(connectionProfiles) > 0 {
+		for _, connectionProfileEntry := range connectionProfiles {
+			if connectionProfileEntry.Name == id {
+				connectionProfileId = connectionProfileEntry.Name
+			}
+		}
 	}
-	rows.Close()
-	return connProfileId
+	return connectionProfileId
 }
 
 // RegisterNewAmbariEntry create new ambari registry entry in ambarictl database
@@ -150,165 +115,169 @@ func RegisterNewAmbariEntry(id string, hostname string, port int, protocol strin
 		fmt.Println(alreadyExistMsg)
 		os.Exit(1)
 	}
-	db, err := getDb()
-	checkErr(err)
-	defer db.Close()
-	statement, _ := db.Prepare("INSERT INTO ambari_registry (id, hostname, port, protocol, username, password, cluster, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-	_, insertErr := statement.Exec(id, hostname, strconv.Itoa(port), protocol, username, password, cluster, strconv.Itoa(1))
-	checkErr(insertErr)
+	ambaiServerEntries := ListAmbariRegistryEntries()
+	newAmbariServerEntry := AmbariRegistry{Name: id, Hostname: hostname, Port: port, Protocol: protocol, Username: username, Password: password, Cluster: cluster, Active: true}
+	ambaiServerEntries = append(ambaiServerEntries, newAmbariServerEntry)
+	WriteAmbariServerEntries(ambaiServerEntries)
 }
 
 // RegisterNewConnectionProfile create new connection profile entry in ambarictl database
-func RegisterNewConnectionProfile(id string, keyPath string, port int, username string, hostJump int, proxyAddress string) {
+func RegisterNewConnectionProfile(id string, keyPath string, port int, username string, hostJump bool, proxyAddress string) {
 	checkId := GetConnectionProfileEntryId(id)
 	if len(checkId) > 0 {
 		alreadyExistMsg := fmt.Sprintf("Connection profile with id '%s' is already defined as a profile entry", checkId)
 		fmt.Println(alreadyExistMsg)
 		os.Exit(1)
 	}
-	db, err := getDb()
-	checkErr(err)
-	defer db.Close()
-	statement, _ := db.Prepare("INSERT INTO connection_profile (id, key_path, port, username, host_jump, proxy_address) VALUES (?, ?, ?, ?, ?, ?)")
-	_, insertErr := statement.Exec(id, keyPath, strconv.Itoa(port), username, strconv.Itoa(hostJump), proxyAddress)
-	checkErr(insertErr)
+	connectionProfiles := ListConnectionProfileEntries()
+	newConnectionProfile := ConnectionProfile{Name: id, KeyPath: keyPath, Port: port, Username: username, HostJump: hostJump, ProxyAddress: proxyAddress}
+	connectionProfiles = append(connectionProfiles, newConnectionProfile)
+	WriteConnectionProfileEntries(connectionProfiles)
 }
 
 // DeRegisterAmbariEntry remove an ambari server enrty by id
 func DeRegisterAmbariEntry(id string) {
-	db, err := getDb()
-	checkErr(err)
-	defer db.Close()
-	statement, _ := db.Prepare("DELETE FROM ambari_registry WHERE id = ?")
-	_, deleteErr := statement.Exec(id)
-	checkErr(deleteErr)
+	ambariServers := ListAmbariRegistryEntries()
+	newAmbariServers := make([]AmbariRegistry, 0)
+	if len(ambariServers) > 0 {
+		for index := range ambariServers {
+			if ambariServers[index].Name != id {
+				newAmbariServers = append(newAmbariServers, ambariServers[index])
+			}
+		}
+	}
+	WriteAmbariServerEntries(ambariServers)
 }
 
 // DeRegisterConnectionProfile remove a connection profile by id
 func DeRegisterConnectionProfile(id string) {
-	db, err := getDb()
-	checkErr(err)
-	defer db.Close()
-	statement, _ := db.Prepare("DELETE FROM connection_profile WHERE id = ?")
-	_, deleteErr := statement.Exec(id)
-	checkErr(deleteErr)
-	statement, err = db.Prepare("UPDATE ambari_registry SET connection_profile='' WHERE connection_profile = ?")
-	checkErr(err)
-	statement.Exec(id)
+	connectionProfiles := ListConnectionProfileEntries()
+	newConnectionProfiles := make([]ConnectionProfile, 0)
+	if len(connectionProfiles) > 0 {
+		for index := range connectionProfiles {
+			if connectionProfiles[index].Name != id {
+				newConnectionProfiles = append(newConnectionProfiles, connectionProfiles[index])
+			}
+		}
+	}
+	WriteConnectionProfileEntries(newConnectionProfiles)
 }
 
 // GetActiveAmbari get the active ambari registry from ambarictl database (should be only one)
 func GetActiveAmbari() AmbariRegistry {
-	db, err := sql.Open("sqlite3", getDbFile())
-	checkErr(err)
-	defer db.Close()
-	rows, err := db.Query("SELECT id,hostname,port,protocol,username,password,cluster,connection_profile FROM ambari_registry WHERE active = '1'")
-	checkErr(err)
-	var id string
-	var hostname string
-	var port int
-	var protocol string
-	var username string
-	var password string
-	var cluster string
-	var connectionProfile string
-	for rows.Next() {
-		rows.Scan(&id, &hostname, &port, &protocol, &username, &password, &cluster, &connectionProfile)
+	ambariServers := ListAmbariRegistryEntries()
+	var result AmbariRegistry
+	if len(ambariServers) > 0 {
+		for _, ambariServerEntry := range ambariServers {
+			if ambariServerEntry.Active {
+				result = ambariServerEntry
+			}
+		}
 	}
-	rows.Close()
-
-	return AmbariRegistry{Name: id, Hostname: hostname, Port: port, Protocol: protocol, Username: username, Password: password, Cluster: cluster, Active: 1, ConnectionProfile: connectionProfile}
+	return result
 }
 
 // GetAmbariById get the ambari registry from ambarictl database by id
 func GetAmbariById(searchId string) AmbariRegistry {
-	db, err := sql.Open("sqlite3", getDbFile())
-	checkErr(err)
-	defer db.Close()
-	rows, err := db.Query("SELECT id,hostname,port,protocol,username,password,cluster,connection_profile FROM ambari_registry WHERE id = '" + searchId + "'")
-	checkErr(err)
-	var id string
-	var hostname string
-	var port int
-	var protocol string
-	var username string
-	var password string
-	var cluster string
-	var connectionProfile string
-	for rows.Next() {
-		rows.Scan(&id, &hostname, &port, &protocol, &username, &password, &cluster, &connectionProfile)
+	ambariServers := ListAmbariRegistryEntries()
+	var result AmbariRegistry
+	if len(ambariServers) > 0 {
+		for _, ambariServerEntry := range ambariServers {
+			if ambariServerEntry.Name == searchId {
+				result = ambariServerEntry
+			}
+		}
 	}
-	rows.Close()
-
-	return AmbariRegistry{Name: id, Hostname: hostname, Port: port, Protocol: protocol, Username: username, Password: password, Cluster: cluster, Active: 1, ConnectionProfile: connectionProfile}
+	return result
 }
 
 // GetConnectionProfileById get the connection profile from ambarictl database by id
 func GetConnectionProfileById(searchId string) ConnectionProfile {
-	db, err := sql.Open("sqlite3", getDbFile())
-	checkErr(err)
-	defer db.Close()
-	rows, err := db.Query("SELECT id,key_path,port,username,host_jump,proxy_address FROM connection_profile WHERE id = '" + searchId + "'")
-	checkErr(err)
-	var id string
-	var keyPath string
-	var port int
-	var username string
-	var hostJump int
-	var proxyAddress string
-	for rows.Next() {
-		rows.Scan(&id, &keyPath, &port, &username, &hostJump, &proxyAddress)
+	connectionProfiles := ListConnectionProfileEntries()
+	var result ConnectionProfile
+	if len(connectionProfiles) > 0 {
+		for _, connectionProfileEntry := range connectionProfiles {
+			if connectionProfileEntry.Name == searchId {
+				result = connectionProfileEntry
+			}
+		}
 	}
-	rows.Close()
-
-	return ConnectionProfile{Name: id, KeyPath: keyPath, Port: port, Username: username, HostJump: hostJump, ProxyAddress: proxyAddress}
+	return result
 }
 
 // SetProfileIdForAmbariEntry attach a connection profile to a specific ambari server entry
 func SetProfileIdForAmbariEntry(ambariEntryId string, profileId string) {
-	db, err := sql.Open("sqlite3", getDbFile())
-	checkErr(err)
-	defer db.Close()
-	statement, _ := db.Prepare("UPDATE ambari_registry SET connection_profile=? WHERE id = ?")
-	_, updateErr := statement.Exec(profileId, ambariEntryId)
-	checkErr(updateErr)
+	ambariServers := ListAmbariRegistryEntries()
+	if len(ambariServers) > 0 {
+		for index := range ambariServers {
+			if ambariServers[index].Name == ambariEntryId {
+				ambariServers[index].ConnectionProfile = profileId
+			}
+		}
+	}
+	WriteAmbariServerEntries(ambariServers)
 }
 
 // ActiveAmbariRegistry turn on active status on selected ambari registry
 func ActiveAmbariRegistry(id string) {
-	db, err := sql.Open("sqlite3", getDbFile())
-	checkErr(err)
-	defer db.Close()
-	statement, _ := db.Prepare("UPDATE ambari_registry SET active='1' WHERE id = ?")
-	_, updateErr := statement.Exec(id)
-	checkErr(updateErr)
+	checkId := GetAmbariEntryId(id)
+	if len(checkId) == 0 {
+		alreadyExistMsg := fmt.Sprintf("Not found Ambari server registry  with id '%s'.", checkId)
+		fmt.Println(alreadyExistMsg)
+		os.Exit(1)
+	}
+	ambariServers := ListAmbariRegistryEntries()
+	if len(ambariServers) > 0 {
+		for index := range ambariServers {
+			if ambariServers[index].Name == id {
+				ambariServers[index].Active = true
+			} else {
+				ambariServers[index].Active = false
+			}
+		}
+	}
+	WriteAmbariServerEntries(ambariServers)
 }
 
 // DeactiveAllAmbariRegistry turn off active status on all ambari registries
 func DeactiveAllAmbariRegistry() {
-	db, err := sql.Open("sqlite3", getDbFile())
-	checkErr(err)
-	defer db.Close()
-	statement, _ := db.Prepare("UPDATE ambari_registry SET active='0' WHERE active = '1'")
-	_, updateErr := statement.Exec()
-	checkErr(updateErr)
-}
-
-func getDb() (*sql.DB, error) {
-	drivers := sql.Drivers()
-	driverExists := false
-	for _, driver := range drivers {
-		if driver == "sqlite3" {
-			driverExists = true
+	ambariServers := ListAmbariRegistryEntries()
+	if len(ambariServers) > 0 {
+		for index := range ambariServers {
+			ambariServers[index].Active = false
 		}
 	}
-	if !driverExists {
-		sql.Register("sqlite3", &sqlite3.SQLiteDriver{})
-	}
-	return sql.Open("sqlite3", getDbFile())
+	WriteAmbariServerEntries(ambariServers)
 }
 
-func getDbFile() string {
+// WriteAmbariServerEntries write ambari server entries to the ambari server registry json file
+func WriteAmbariServerEntries(ambariServers []AmbariRegistry) {
+	ambariServerJson, _ := json.Marshal(ambariServers)
+	ambariServerJsonFile := getJsonDbFile(ambariServerJsonFileName)
+	err := ioutil.WriteFile(ambariServerJsonFile, FormatJson(ambariServerJson).Bytes(), 0600)
+	checkErr(err)
+}
+
+// WriteConnectionProfileEntries write connection profile entries to the connection profile registry json file
+func WriteConnectionProfileEntries(connectionProfiles []ConnectionProfile) {
+	connectionProfilesJson, _ := json.Marshal(connectionProfiles)
+	connectionProfilesJsonFile := getJsonDbFile(connectionProfilesJsonFileName)
+	err := ioutil.WriteFile(connectionProfilesJsonFile, FormatJson(connectionProfilesJson).Bytes(), 0600)
+	checkErr(err)
+}
+
+// FormatJson format json file
+func FormatJson(b []byte) *bytes.Buffer {
+	var out bytes.Buffer
+	err := json.Indent(&out, b, "", "    ")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return &out
+}
+
+func getJsonDbFile(file string) string {
 	usr, err := user.Current()
 	if err != nil {
 		panic(err)
@@ -318,7 +287,17 @@ func getDbFile() string {
 	if _, err := os.Stat(ambariManagerFolder); os.IsNotExist(err) {
 		os.Mkdir(ambariManagerFolder, os.ModePerm)
 	}
-	return path.Join(ambariManagerFolder, "ambari-registry.db")
+	return path.Join(ambariManagerFolder, file)
+}
+
+// Exists reports whether the named file or directory exists.
+func exists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }
 
 func checkErr(err error) {
