@@ -23,6 +23,7 @@ import (
 	"github.com/urfave/cli"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"strconv"
 	"strings"
 )
@@ -92,6 +93,20 @@ func main() {
 						os.Exit(1)
 					}
 					keyPath := ambari.GetStringFlag(c.String("key_path"), "", "Enter ssh key path")
+					usr, err := user.Current()
+					if err != nil {
+						panic(err)
+					}
+					home := usr.HomeDir
+					keyPath = strings.Replace(keyPath, "~", home, -1)
+					if len(keyPath) > 0 {
+						if _, err := os.Stat(keyPath); err != nil {
+							if os.IsNotExist(err) {
+								fmt.Println(err)
+								os.Exit(1)
+							}
+						}
+					}
 					portStr := ambari.GetStringFlag(c.String("port"), "22", "Enter ssh port")
 					port, err := strconv.Atoi(portStr)
 					if err != nil {
