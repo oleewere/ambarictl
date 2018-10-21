@@ -112,35 +112,11 @@ func (a AmbariRegistry) SetConfig(configType string, configKey string, configVal
 func (a AmbariRegistry) RunAmbariServiceCommand(command string, filter Filter, useServiceFilter bool, useComponentFilter bool) {
 	command = strings.ToUpper(command)
 	if command == "START" {
-		if useComponentFilter {
-			for _, component := range filter.Components {
-				a.StartComponent(component)
-			}
-		} else if useServiceFilter {
-			for _, component := range filter.Services {
-				a.StartService(component)
-			}
-		}
+		a.startAmbariServiceOrComponent(useComponentFilter, filter, useServiceFilter)
 	} else if command == "STOP" {
-		if useComponentFilter {
-			for _, component := range filter.Components {
-				a.StopComponent(component)
-			}
-		} else if useServiceFilter {
-			for _, component := range filter.Services {
-				a.StartService(component)
-			}
-		}
+		a.stopAmbariServiceOrComponent(useComponentFilter, filter, useServiceFilter)
 	} else if command == "RESTART" {
-		if useComponentFilter {
-			for _, component := range filter.Components {
-				a.RestartComponent(component)
-			}
-		} else if useServiceFilter {
-			for _, component := range filter.Components {
-				a.RestartService(component)
-			}
-		}
+		a.restartAmbariServiceOrComponent(useComponentFilter, filter, useServiceFilter)
 	} else {
 		fmt.Println("Only START/STOP/RESTART operations are supported.")
 		os.Exit(1)
@@ -231,4 +207,40 @@ func (a AmbariRegistry) componentOperation(component string, operation string, c
 }`, operation, context, a.Cluster, service, component, hosts)
 	bodyBytes.WriteString(jsonStr)
 	return a.CreatePostRequest(bodyBytes, uriSuffix, true)
+}
+
+func (a AmbariRegistry) restartAmbariServiceOrComponent(useComponentFilter bool, filter Filter, useServiceFilter bool) {
+	if useComponentFilter {
+		for _, component := range filter.Components {
+			a.RestartComponent(component)
+		}
+	} else if useServiceFilter {
+		for _, component := range filter.Components {
+			a.RestartService(component)
+		}
+	}
+}
+
+func (a AmbariRegistry) stopAmbariServiceOrComponent(useComponentFilter bool, filter Filter, useServiceFilter bool) {
+	if useComponentFilter {
+		for _, component := range filter.Components {
+			a.StopComponent(component)
+		}
+	} else if useServiceFilter {
+		for _, component := range filter.Services {
+			a.StartService(component)
+		}
+	}
+}
+
+func (a AmbariRegistry) startAmbariServiceOrComponent(useComponentFilter bool, filter Filter, useServiceFilter bool) {
+	if useComponentFilter {
+		for _, component := range filter.Components {
+			a.StartComponent(component)
+		}
+	} else if useServiceFilter {
+		for _, component := range filter.Services {
+			a.StartService(component)
+		}
+	}
 }
