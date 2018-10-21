@@ -22,11 +22,14 @@ import (
 
 // DownloadViaScp downloads file from remote to local
 func DownloadViaScp(sshConfig *easyssh.MakeConfig, source string, dest string) error {
-	if len(sshConfig.Proxy.Server) > 0 {
-		fmt.Print("TODO host jump!!!")
-	}
 	userAndRemote := fmt.Sprintf("%v@%v", sshConfig.User, sshConfig.Server)
-	cmd := exec.Command("scp", "-o", "StrictHostKeyChecking=no", "-q", "-P", sshConfig.Port, "-i", sshConfig.KeyPath, userAndRemote+":"+source, dest)
+	var args []string
+	if len(sshConfig.Proxy.Server) > 0 {
+		args = []string{"-o", fmt.Sprintf("ProxyJump=%v", sshConfig.Proxy.Server), "-o", "StrictHostKeyChecking=no", "-q", "-P", sshConfig.Port, "-i", sshConfig.KeyPath, userAndRemote + ":" + source, dest}
+	} else {
+		args = []string{"-o", "StrictHostKeyChecking=no", "-q", "-P", sshConfig.Port, "-i", sshConfig.KeyPath, userAndRemote + ":" + source, dest}
+	}
+	cmd := exec.Command("scp", args...)
 	if err := cmd.Run(); err != nil {
 		return err
 	}
