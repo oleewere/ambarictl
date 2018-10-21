@@ -219,13 +219,12 @@ func createSshConfig(connectionProfile ConnectionProfile, host string) *easyssh.
 				Timeout: 60 * time.Second,
 			},
 		}
-	} else {
-		return &easyssh.MakeConfig{
-			User:    connectionProfile.Username,
-			Server:  host,
-			KeyPath: connectionProfile.KeyPath,
-			Port:    strconv.Itoa(connectionProfile.Port),
-			Timeout: 60 * time.Second,
-		}
+	}
+	return &easyssh.MakeConfig{
+		User:    connectionProfile.Username,
+		Server:  host,
+		KeyPath: connectionProfile.KeyPath,
+		Port:    strconv.Itoa(connectionProfile.Port),
+		Timeout: 60 * time.Second,
 	}
 }
