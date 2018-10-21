@@ -310,45 +310,49 @@ func getComponentLogDirMap(ambariRegistry AmbariRegistry, filter Filter) map[str
 		}
 		for _, service := range services {
 			if components, ok := logDirMap[service]; ok {
-				filteredComponents := []string{}
-				if len(filter.Components) > 0 {
-					filteredComponents = filter.Components
-				}
-				for componentKey, component := range components {
-					var logConfigType = ""
-					var logConfigProperty = ""
-					var logDirDefault = ""
-					if logConfigTypeVal, ok := component["log_dir_config_type"]; ok {
-						logConfigType = logConfigTypeVal
-					}
-					if logConfigPropertyVal, ok := component["log_dir_config_property"]; ok {
-						logConfigProperty = logConfigPropertyVal
-					}
-					if logDirDefaultVal, ok := component["log_dir_default"]; ok {
-						logDirDefault = logDirDefaultVal
-					}
-					componentLogDir := ""
-					if len(logConfigProperty) > 0 && len(logConfigType) > 0 {
-						componentLogDir = GetConfigValue(blueprint, logConfigType, logConfigProperty)
-					} else if len(logDirDefault) > 0 {
-						componentLogDir = logDirDefault
-					}
-					if len(componentLogDir) > 0 {
-						if len(filteredComponents) > 0 {
-							for _, comp := range filteredComponents {
-								if comp == componentKey {
-									componentLogDirMap[componentKey] = componentLogDir
-								}
-							}
-						} else {
-							componentLogDirMap[componentKey] = componentLogDir
-						}
-					}
-				}
+				findLogDirConfigsWithFilters(filter, components, blueprint, componentLogDirMap)
 			}
 		}
 	}
 	return componentLogDirMap
+}
+
+func findLogDirConfigsWithFilters(filter Filter, components map[string]map[string]string, blueprint map[string]interface{}, componentLogDirMap map[string]string) {
+	filteredComponents := []string{}
+	if len(filter.Components) > 0 {
+		filteredComponents = filter.Components
+	}
+	for componentKey, component := range components {
+		var logConfigType = ""
+		var logConfigProperty = ""
+		var logDirDefault = ""
+		if logConfigTypeVal, ok := component["log_dir_config_type"]; ok {
+			logConfigType = logConfigTypeVal
+		}
+		if logConfigPropertyVal, ok := component["log_dir_config_property"]; ok {
+			logConfigProperty = logConfigPropertyVal
+		}
+		if logDirDefaultVal, ok := component["log_dir_default"]; ok {
+			logDirDefault = logDirDefaultVal
+		}
+		componentLogDir := ""
+		if len(logConfigProperty) > 0 && len(logConfigType) > 0 {
+			componentLogDir = GetConfigValue(blueprint, logConfigType, logConfigProperty)
+		} else if len(logDirDefault) > 0 {
+			componentLogDir = logDirDefault
+		}
+		if len(componentLogDir) > 0 {
+			if len(filteredComponents) > 0 {
+				for _, comp := range filteredComponents {
+					if comp == componentKey {
+						componentLogDirMap[componentKey] = componentLogDir
+					}
+				}
+			} else {
+				componentLogDirMap[componentKey] = componentLogDir
+			}
+		}
+	}
 }
 
 func createDownloadFolder(dest string, component string) string {
