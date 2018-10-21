@@ -588,15 +588,16 @@ func main() {
 		Action: func(c *cli.Context) error {
 			ambariServer := ambari.GetActiveAmbari()
 			if len(c.String("file")) == 0 {
-				fmt.Println("Provide --file parameter")
+				fmt.Println("Provide -f or --file parameter")
 				os.Exit(1)
 			}
-			playbook := ambari.LoadPlaybookFile(c.String("file"))
+			playbook := ambari.LoadPlaybookFile(c.String("file"), c.String("vars"))
 			ambariServer.ExecutePlaybook(playbook)
 			return nil
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{Name: "file, f", Usage: "Playbook file"},
+			cli.StringFlag{Name: "vars, v", Usage: "Provided extra variables (e.g.: --vars='myvar1=myvalue1 myvar2=myvalue2')"},
 		},
 	}
 
