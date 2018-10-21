@@ -59,7 +59,7 @@ type Task struct {
 }
 
 // LoadPlaybookFile read a playbook yaml file and transform it to a Playbook object
-func LoadPlaybookFile(location string) Playbook {
+func LoadPlaybookFile(location string, varsInput string) Playbook {
 	data, err := ioutil.ReadFile(location)
 	if err != nil {
 		fmt.Print(err)
@@ -170,23 +170,6 @@ func (a AmbariRegistry) ExecuteConfigCommand(task Task) {
 // ExecuteRemoteCommandTask executes a remote command on filtered hosts
 func (a AmbariRegistry) ExecuteRemoteCommandTask(task Task, filteredHosts map[string]bool) {
 	if len(task.Command) > 0 {
-		haveSourceFile := false
-		haveTargetFile := false
-		if sourceVal, ok := task.Parameters["source"]; ok {
-			haveSourceFile = true
-			if targetVal, ok := task.Parameters["target"]; ok {
-				haveTargetFile = true
-				a.CopyToRemote(sourceVal, targetVal, filteredHosts)
-			}
-		}
-		if !haveSourceFile {
-			fmt.Println("'source' parameter is required for 'Upload' task")
-			os.Exit(1)
-		}
-		if !haveTargetFile {
-			fmt.Println("'target' parameter is required for 'Upload' task")
-			os.Exit(1)
-		}
 		a.RunRemoteHostCommand(task.Command, filteredHosts)
 	}
 }
