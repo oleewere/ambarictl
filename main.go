@@ -234,6 +234,7 @@ func main() {
 		Usage: "Print all registered Ambari agent hosts",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
+			validateActiveAmbari(ambariRegistry)
 			hosts := ambariRegistry.ListAgents()
 			var tableData [][]string
 			for _, host := range hosts {
@@ -249,6 +250,7 @@ func main() {
 		Usage: "Print all installed Ambari services",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
+			validateActiveAmbari(ambariRegistry)
 			services := ambariRegistry.ListServices()
 			var tableData [][]string
 			for _, service := range services {
@@ -264,6 +266,7 @@ func main() {
 		Usage: "Print all installed Ambari components",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
+			validateActiveAmbari(ambariRegistry)
 			components := ambariRegistry.ListComponents()
 			var tableData [][]string
 			for _, component := range components {
@@ -279,6 +282,7 @@ func main() {
 		Usage: "Print all installed Ambari host components by component name",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
+			validateActiveAmbari(ambariRegistry)
 			var param string
 			useHost := false
 			if len(c.String("component")) > 0 {
@@ -428,6 +432,7 @@ func main() {
 				Usage: "Print all service config types with versions",
 				Action: func(c *cli.Context) error {
 					ambariRegistry := ambari.GetActiveAmbari()
+					validateActiveAmbari(ambariRegistry)
 					configs := ambariRegistry.ListServiceConfigVersions()
 					var tableData [][]string
 					for _, config := range configs {
@@ -442,6 +447,7 @@ func main() {
 				Usage: "Update config value for a specific config key of a config type",
 				Action: func(c *cli.Context) error {
 					ambariRegistry := ambari.GetActiveAmbari()
+					validateActiveAmbari(ambariRegistry)
 					if len(c.String("config-type")) == 0 {
 						fmt.Println("Parameter '--config-type' is required")
 						os.Exit(1)
@@ -468,6 +474,7 @@ func main() {
 				Usage: "Export cluster configuration to a blueprint json",
 				Action: func(c *cli.Context) error {
 					ambariRegistry := ambari.GetActiveAmbari()
+					validateActiveAmbari(ambariRegistry)
 					var blueprint []byte
 					if c.Bool("minimal") {
 						clusterInfo := ambariRegistry.GetClusterInfo()
@@ -517,6 +524,7 @@ func main() {
 		Usage: "Print Ambari managed cluster details",
 		Action: func(c *cli.Context) error {
 			ambariRegistry := ambari.GetActiveAmbari()
+			validateActiveAmbari(ambariRegistry)
 			clusterInfo := ambariRegistry.GetClusterInfo()
 			var tableData [][]string
 			if len(ambariRegistry.Name) > 0 {
@@ -532,6 +540,7 @@ func main() {
 		Usage: "Execute commands on all (or specific) hosts",
 		Action: func(c *cli.Context) error {
 			ambariServer := ambari.GetActiveAmbari()
+			validateActiveAmbari(ambariServer)
 			args := c.Args()
 			command := ""
 			for _, arg := range args {
@@ -556,6 +565,7 @@ func main() {
 		Usage: "Execute ambari commands on Ambari server (START/STOP/RESTART)",
 		Action: func(c *cli.Context) error {
 			ambariServer := ambari.GetActiveAmbari()
+			validateActiveAmbari(ambariServer)
 			args := c.Args()
 			command := ""
 			for _, arg := range args {
@@ -587,6 +597,7 @@ func main() {
 		Usage: "Execute a list of commands defined in playbook file(s)",
 		Action: func(c *cli.Context) error {
 			ambariServer := ambari.GetActiveAmbari()
+			validateActiveAmbari(ambariServer)
 			if len(c.String("file")) == 0 {
 				fmt.Println("Provide -f or --file parameter")
 				os.Exit(1)
@@ -681,4 +692,11 @@ func formatJson(b []byte) *bytes.Buffer {
 		os.Exit(1)
 	}
 	return &out
+}
+
+func validateActiveAmbari(ambariServer ambari.AmbariRegistry) {
+	if len(ambariServer.Name) == 0 {
+		fmt.Println("No active ambari server selected. (see 'use' command)")
+		os.Exit(1)
+	}
 }
