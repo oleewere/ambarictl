@@ -146,7 +146,7 @@ func DeRegisterAmbariEntry(id string) {
 			}
 		}
 	}
-	WriteAmbariServerEntries(ambariServers)
+	WriteAmbariServerEntries(newAmbariServers)
 }
 
 // DeRegisterConnectionProfile remove a connection profile by id
