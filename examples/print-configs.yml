@@ -1,9 +1,12 @@
 name: "Print configs"
+inputs:
+  - name: AmbariServerConfig
+    default: /etc/ambari-server/conf/ambari.properties
 tasks:
   - name: "Ambari server config"
     ambari_server: true
     type: RemoteCommand
-    command: "cat /etc/ambari-server/conf/ambari.properties"
+    command: "cat {{ .AmbariServerConfig }}"
   - name: "Ambari agent configs"
     type: RemoteCommand
     ambari_agent: true

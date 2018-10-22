@@ -15,11 +15,13 @@
 package ambari
 
 import (
+	"bytes"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"strings"
+	"text/template"
 )
 
 const (
@@ -39,12 +41,13 @@ const (
 
 // Playbook contains an array of tasks that will be executed on ambari hosts
 type Playbook struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	Tasks       []Task `yaml:"tasks"`
+	Name        string  `yaml:"name"`
+	Description string  `yaml:"description"`
+	Tasks       []Task  `yaml:"tasks"`
+	Inputs      []Input `yaml:"inputs"`
 }
 
-// Task represent a task that can be executed on an ambari hosts
+// Task represents a task that can be executed on an ambari hosts
 type Task struct {
 	Name                string            `yaml:"name"`
 	Type                string            `yaml:"type"`
@@ -58,15 +61,47 @@ type Task struct {
 	Parameters          map[string]string `yaml:"parameters,omitempty"`
 }
 
+// Input represents a variable that needs to be provided by users (if default value is empty)
+type Input struct {
+	Name    string `yaml:"name"`
+	Default string `yaml:"default"`
+}
+
 // LoadPlaybookFile read a playbook yaml file and transform it to a Playbook object
 func LoadPlaybookFile(location string, varsInput string) Playbook {
+	varInputMap := createVarMap(varsInput)
 	data, err := ioutil.ReadFile(location)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
+	playbookTempl := Playbook{}
+	err = yaml.Unmarshal([]byte(data), &playbookTempl)
+	if err != nil {
+		fmt.Print(err)
+		os.Exit(1)
+	}
+	if len(playbookTempl.Inputs) > 0 {
+		for _, input := range playbookTempl.Inputs {
+			if varVal, ok := varInputMap[input.Name]; ok {
+				fmt.Println(fmt.Sprintf("Found input: %v - %v", input.Name, varVal))
+				break
+			}
+			if len(input.Default) == 0 {
+				varSetByUser := GetStringFlag("", "", fmt.Sprintf("Enter %v", input.Name))
+				varInputMap[input.Name] = varSetByUser
+				break
+			}
+			varInputMap[input.Name] = input.Default
+		}
+	}
+	templ := template.New("playbook template")
+	textTemplate, _ := templ.Parse(fmt.Sprintf("%s", data))
+	var tpl bytes.Buffer
+	textTemplate.Execute(&tpl, varInputMap)
+
 	playbook := Playbook{}
-	err = yaml.Unmarshal([]byte(data), &playbook)
+	err = yaml.Unmarshal(tpl.Bytes(), &playbook)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
@@ -232,4 +267,17 @@ func ExecuteDownloadFileTask(task Task) {
 			os.Exit(1)
 		}
 	}
+}
+
+func createVarMap(varMapStr string) map[string]interface{} {
+	resultMap := make(map[string]interface{})
+	if len(varMapStr) > 0 {
+		var ss []string
+		ss = strings.Split(varMapStr, " ")
+		for _, pair := range ss {
+			z := strings.Split(pair, "=")
+			resultMap[z[0]] = z[1]
+		}
+	}
+	return resultMap
 }
