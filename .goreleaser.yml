@@ -10,7 +10,7 @@ builds:
   ldflags:
   - -s -X main.Version={{.Version}} -X main.GitRevString={{.Commit}}
   env:
-  - CGO_ENABLED=1
+  - CGO_ENABLED=0
 - main: main.go
   binary: ambarictl
   goos:
@@ -20,9 +20,7 @@ builds:
   ldflags:
   - -s -X main.Version={{.Version}} -X main.GitRevString={{.Commit}}
   env:
-  - CGO_ENABLED=1
-  - CC=o64-clang
-  - CXX=o64-clang++
+  - CGO_ENABLED=0
 - main: main.go
   binary: ambarictl
   goos:
