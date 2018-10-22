@@ -20,7 +20,6 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"os"
 	"strings"
-	"syscall"
 )
 
 // GetStringFlag trying to read a flag value, if it does not exists ask an input from the user
@@ -50,8 +49,8 @@ func GetStringFlag(flagValue string, defaultValue string, text string) string {
 func GetPassword(flagValue string, text string) string {
 	if len(flagValue) == 0 {
 		fmt.Print(text + ": ")
-		if terminal.IsTerminal(syscall.Stdin) {
-			var fd = syscall.Stdin
+		if terminal.IsTerminal(0) {
+			var fd = 0
 			bytePassword, err := terminal.ReadPassword(fd)
 			if err != nil {
 				fmt.Println(err)
