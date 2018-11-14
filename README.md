@@ -16,12 +16,20 @@ brew install ambarictl
 
 Using wget:
 ```bash
+<<<<<<< HEAD
 wget -qO- https://github.com/oleewere/ambarictl/releases/download/v0.4.0/ambarictl_0.4.0_linux_64-bit.tar.gz | tar -C /usr/bin -zxv ambarictl
+=======
+wget -qO- https://github.com/oleewere/ambarictl/releases/download/v0.4.2/ambarictl_0.4.2_linux_64-bit.tar.gz | tar -C /usr/bin -zxv ambarictl
+>>>>>>> 6d41c36... Update README.md
 ```
 
 Using curl:
 ```bash
+<<<<<<< HEAD
 curl -L -s https://github.com/oleewere/ambarictl/releases/download/v0.4.0/ambarictl_0.4.0_linux_64-bit.tar.gz | tar -C /usr/bin -xzv ambarictl
+=======
+curl -L -s https://github.com/oleewere/ambarictl/releases/download/v0.4.2/ambarictl_0.4.2_linux_64-bit.tar.gz | tar -C /usr/bin -xzv ambarictl
+>>>>>>> 6d41c36... Update README.md
 ```
 
 ### Usage
