@@ -549,7 +549,7 @@ func main() {
 			filter := ambari.CreateFilter(strings.ToUpper(c.String("services")),
 				strings.ToUpper(c.String("components")), c.String("hosts"), c.Bool("server"))
 			hosts := ambariServer.GetFilteredHosts(filter)
-			ambariServer.RunRemoteHostCommand(command, hosts)
+			ambariServer.RunRemoteHostCommand(command, hosts, filter.Server)
 			return nil
 		},
 		Flags: []cli.Flag{
