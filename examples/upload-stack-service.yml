@@ -2,8 +2,14 @@ name: "Upload new stack"
 inputs:
   - name: StackLocation
     default: /Users/oszabo/Projects/hdp_ambari_definitions/src/main/resources/stacks/HDP/3.0/services
+  - name: RemoteStackLocation
+    default: /var/lib/ambari-server/resources/stacks/HDP/3.0/services
   - name: Service
     default: LOGSEARCH
+  - name: AmbariServerUser
+    default: root
+  - name: AmbariServerGroup
+    default: root
 tasks:
   - name: "Gzip service stack"
     type: LocalCommand
@@ -14,3 +20,15 @@ tasks:
     parameters:
       source: "/tmp/{{.Service}}.tar"
       target: "/tmp/{{.Service}}.tar"
+  - name: "Replace {{.Service}} stack code"
+    type: RemoteCommand
+    ambari_server: true
+    command: "rm -rf {{.RemoteStackLocation}}/{{.Service}} && tar xf /tmp/{{.Service}}.tar -C {{.RemoteStackLocation}} && rm -rf {{.RemoteStackLocation}}/._{{.Service}}"
+  - name: "Change user/group for extracted folder (recursively)"
+    type: RemoteCommand
+    ambari_server: true
+    command: "chown -R {{.AmbariServerUser}}:{{.AmbariServerGroup}} {{.RemoteStackLocation}}/{{.Service}}"
+  - name: "Restart Ambari server"
+    type: RemoteCommand
+    ambari_server: true
+    command: "ambari-server restart"
