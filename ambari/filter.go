@@ -65,9 +65,11 @@ func (a AmbariRegistry) GetFilteredHosts(filter Filter) map[string]bool {
 	}
 	if filter.Server {
 		hosts[a.Hostname] = true
+		finalHosts[a.Hostname] = true
+	} else {
+		agents := a.ListAgents()
+		calculateAndFillFinalHosts(agents, filter, hosts, finalHosts)
 	}
-	agents := a.ListAgents()
-	calculateAndFillFinalHosts(agents, filter, hosts, finalHosts)
 	return finalHosts
 }
 

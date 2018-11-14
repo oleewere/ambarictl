@@ -105,7 +105,7 @@ func (a AmbariRegistry) SetConfig(configType string, configKey string, configVal
 	command := fmt.Sprintf("/var/lib/ambari-server/resources/scripts/configs.py --action set -c %s -k %s -v %s "+
 		"-u %s -p %s --host=%s --cluster=%s --protocol=%s -b '%s'", configType, configKey, configValue, a.Username, a.Password,
 		a.Hostname, a.Cluster, a.Protocol, versionNote)
-	a.RunRemoteHostCommand(command, filteredHosts)
+	a.RunRemoteHostCommand(command, filteredHosts, filter.Server)
 }
 
 // RunAmbariServiceCommand start / stop / restart Ambari services or components

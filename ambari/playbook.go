@@ -205,7 +205,7 @@ func (a AmbariRegistry) ExecuteConfigCommand(task Task) {
 // ExecuteRemoteCommandTask executes a remote command on filtered hosts
 func (a AmbariRegistry) ExecuteRemoteCommandTask(task Task, filteredHosts map[string]bool) {
 	if len(task.Command) > 0 {
-		a.RunRemoteHostCommand(task.Command, filteredHosts)
+		a.RunRemoteHostCommand(task.Command, filteredHosts, task.AmbariServerFilter)
 	}
 }
 
@@ -218,7 +218,7 @@ func (a AmbariRegistry) ExecuteUploadFileTask(task Task, filteredHosts map[strin
 			haveSourceFile = true
 			if targetVal, ok := task.Parameters["target"]; ok {
 				haveTargetFile = true
-				a.CopyToRemote(sourceVal, targetVal, filteredHosts)
+				a.CopyToRemote(sourceVal, targetVal, filteredHosts, task.AmbariServerFilter)
 			}
 		}
 		if !haveSourceFile {
