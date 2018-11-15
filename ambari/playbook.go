@@ -64,7 +64,7 @@ type Task struct {
 // Input represents a variable that needs to be provided by users (if default value is empty)
 type Input struct {
 	Name    string `yaml:"name"`
-	Default string `yaml:"default"`
+	Default string `yaml:"default,omitempty"`
 }
 
 // LoadPlaybookFile read a playbook yaml file and transform it to a Playbook object
@@ -85,12 +85,12 @@ func LoadPlaybookFile(location string, varsInput string) Playbook {
 		for _, input := range playbookTempl.Inputs {
 			if varVal, ok := varInputMap[input.Name]; ok {
 				fmt.Println(fmt.Sprintf("Found input: %v - %v", input.Name, varVal))
-				break
+				continue
 			}
 			if len(input.Default) == 0 {
 				varSetByUser := GetStringFlag("", "", fmt.Sprintf("Enter %v", input.Name))
 				varInputMap[input.Name] = varSetByUser
-				break
+				continue
 			}
 			varInputMap[input.Name] = input.Default
 		}
