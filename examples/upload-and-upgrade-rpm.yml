@@ -1,0 +1,25 @@
+name: "Upload & upgrade rpm"
+inputs:
+  - name: RpmFileName
+    default: ambari-logsearch-logfeeder-3.0.0.0-SNAPSHOT.noarch.rpm
+  - name: RpmLocation
+    default: /Users/oszabo/Projects/ambari-logsearch/ambari-logsearch-assembly/target/rpm/ambari-logsearch-logfeeder/RPMS/noarch
+  - name: RpmName
+    default: ambari-logsearch-logfeeder.rpm
+tasks:
+  - name: "Create /tmp/rpms folder"
+    type: LocalCommand
+    command: "mkdir -p /tmp/rpms"
+  - name: "Copy RPM to /tmp/rpms folder"
+    type: LocalCommand
+    command: "cp -r {{.RpmLocation}}/{{.RpmFileName}} /tmp/rpms/{{.RpmName}}"
+  - name: "Upload service stack folder to Ambari server"
+    type: Upload
+    components: LOGSEARCH_LOGFEEDER
+    parameters:
+      source: "/tmp/rpms/{{.RpmName}}"
+      target: "/tmp/{{.RpmName}}"
+  - name: "Remove and Install new Log Feeder RPMs"
+    type: RemoteCommand
+    components: LOGSEARCH_LOGFEEDER
+    command: "yum remove -y ambari-logsearch-logfeeder && yum -y install /tmp/{{.RpmName}}"
