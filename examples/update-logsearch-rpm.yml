@@ -1,0 +1,22 @@
+name: "Upgrade logsearch rpm"
+inputs:
+  - name: BuildNumber
+  - name: AmbariBaseVersion
+    default: 2.7.100.0
+tasks:
+  - name: "Download new ambari repo file"
+    type: RemoteCommand
+    components: LOGSEARCH_SERVER
+    command: "curl -o /etc/yum.repos.d/ambari.repo http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos7/2.x/BUILDS/{{.AmbariBaseVersion}}-{{.BuildNumber}}/ambaribn.repo"
+  - name: "Stop Log Search server components"
+    type: AmbariCommand
+    command: STOP
+    components: LOGSEARCH_SERVER
+  - name: "Download new ambari repo file"
+    type: RemoteCommand
+    components: LOGSEARCH_SERVER
+    command: "yum remove -y ambari-logsearch-portal && yum install -y ambari-logsearch-portal"
+  - name: "Restart Log Search server components"
+    type: AmbariCommand
+    command: START
+    components: LOGSEARCH_SERVER
