@@ -215,8 +215,8 @@ func (a AmbariRegistry) restartAmbariServiceOrComponent(useComponentFilter bool,
 			a.RestartComponent(component)
 		}
 	} else if useServiceFilter {
-		for _, component := range filter.Components {
-			a.RestartService(component)
+		for _, service := range filter.Services {
+			a.RestartService(service)
 		}
 	}
 }
@@ -227,8 +227,8 @@ func (a AmbariRegistry) stopAmbariServiceOrComponent(useComponentFilter bool, fi
 			a.StopComponent(component)
 		}
 	} else if useServiceFilter {
-		for _, component := range filter.Services {
-			a.StartService(component)
+		for _, service := range filter.Services {
+			a.StopService(service)
 		}
 	}
 }
@@ -239,8 +239,8 @@ func (a AmbariRegistry) startAmbariServiceOrComponent(useComponentFilter bool, f
 			a.StartComponent(component)
 		}
 	} else if useServiceFilter {
-		for _, component := range filter.Services {
-			a.StartService(component)
+		for _, service := range filter.Services {
+			a.StartService(service)
 		}
 	}
 }
