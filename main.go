@@ -562,7 +562,7 @@ func main() {
 
 	commandCommand := cli.Command{
 		Name:  "command",
-		Usage: "Execute ambari commands on Ambari server (START/STOP/RESTART)",
+		Usage: "Execute ambari commands on Ambari server (START/STOP/RESTART/SERVICE_CHECK)",
 		Action: func(c *cli.Context) error {
 			ambariServer := ambari.GetActiveAmbari()
 			validateActiveAmbari(ambariServer)
@@ -573,6 +573,10 @@ func main() {
 			}
 			if len(c.String("services")) == 0 && len(c.String("components")) == 0 {
 				fmt.Println("It is required to provide --components (-c) or --services (-s) flag")
+				os.Exit(1)
+			}
+			if command == "SERVICE_CHECK" && len(c.String("services")) == 0 {
+				fmt.Println("Service check can be performed only on services, not components")
 				os.Exit(1)
 			}
 			filter := ambari.CreateFilter(strings.ToUpper(c.String("services")),
