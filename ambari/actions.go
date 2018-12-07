@@ -117,8 +117,10 @@ func (a AmbariRegistry) RunAmbariServiceCommand(command string, filter Filter, u
 		a.stopAmbariServiceOrComponent(useComponentFilter, filter, useServiceFilter)
 	} else if command == "RESTART" {
 		a.restartAmbariServiceOrComponent(useComponentFilter, filter, useServiceFilter)
+	} else if command == "SERVICE_CHECK" {
+		a.checkService(filter)
 	} else {
-		fmt.Println("Only START/STOP/RESTART operations are supported.")
+		fmt.Println("Only START/STOP/RESTART/SERVICE_CHECK operations are supported.")
 		os.Exit(1)
 	}
 }
@@ -126,6 +128,18 @@ func (a AmbariRegistry) RunAmbariServiceCommand(command string, filter Filter, u
 // StartService starting an ambari service
 func (a AmbariRegistry) StartService(service string) []byte {
 	request := a.serviceOperation(service, "STARTED", fmt.Sprintf("Start service (%s) by ambarictl", service))
+	return ProcessRequest(request)
+}
+
+// CheckService performs service check on an ambari service
+func (a AmbariRegistry) CheckService(service string) []byte {
+	checkName := service
+	if service == "ZOOKEEPER" {
+		checkName = "ZOOKEEPER_QUORUM"
+	}
+	command := fmt.Sprintf("%s_SERVICE_CHECK", checkName)
+	context := fmt.Sprintf("Check service (%s) by ambarictl", service)
+	request := a.serviceCommand(service, command, context)
 	return ProcessRequest(request)
 }
 
@@ -207,6 +221,30 @@ func (a AmbariRegistry) componentOperation(component string, operation string, c
 }`, operation, context, a.Cluster, service, component, hosts)
 	bodyBytes.WriteString(jsonStr)
 	return a.CreatePostRequest(bodyBytes, uriSuffix, true)
+}
+
+func (a AmbariRegistry) serviceCommand(service string, command string, context string) *http.Request {
+	uriSuffix := "requests"
+	var bodyBytes bytes.Buffer
+	jsonStr := fmt.Sprintf(`{
+  "RequestInfo": {
+    "context" : "%s",
+    "command": "%s"
+  },
+  "Requests/resource_filters": [
+    {
+      "service_name": "%s"
+    }
+  ]
+}`, context, command, service)
+	bodyBytes.WriteString(jsonStr)
+	return a.CreatePostRequest(bodyBytes, uriSuffix, true)
+}
+
+func (a AmbariRegistry) checkService(filter Filter) {
+	for _, service := range filter.Services {
+		a.CheckService(service)
+	}
 }
 
 func (a AmbariRegistry) restartAmbariServiceOrComponent(useComponentFilter bool, filter Filter, useServiceFilter bool) {
